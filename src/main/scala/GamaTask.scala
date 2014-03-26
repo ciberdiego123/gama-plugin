@@ -6,19 +6,30 @@ import org.openmole.core.implementation.task._
 import org.openmole.core.model.data.{ Prototype, Context }
 import org.openmole.core.model.task._
 import java.io.File
+import msi.gama.headless.runtime.GamaSimulator
+import msi.gama.kernel.experiment.ParametersSet
 
 object GamaTask {
-  def apply(name: String)(implicit plugins: PluginSet) = new TaskBuilder { builder ⇒
-    def toTask = new GamaTask(name) with builder.Built
+  def apply(name: String, gaml: File, experimentName: String, steps: Int)(implicit plugins: PluginSet) = new TaskBuilder { builder ⇒
+    def toTask = new GamaTask(name, gaml, experimentName, steps) with builder.Built
   }
+
+  lazy val preload = HeadlessSimulationLoader.preloadGAMA
 }
 
-abstract class GamaTask(val name: String) extends Task {
+abstract class GamaTask(val name: String, val gaml: File, val experimentName: String, val steps: Int) extends Task {
 
   override protected def process(context: Context): Context = {
-    println(System.getProperty("osgi.configuration.area"))
-    HeadlessSimulationLoader.preloadGAMA()
-    println(System.getProperty("osgi.configuration.area"))
+    GamaTask.preload
+
+    val model = HeadlessSimulationLoader.loadModel(gaml.getAbsolutePath)
+    val simulator = HeadlessSimulationLoader.newHeadlessSimulation(model, experimentName, new ParametersSet())
+    for {
+      s <- 0 until steps
+    } {
+      val scope = simulator.getCurrentSimulation.getScope
+      simulator.getCurrentSimulation.step(scope)
+    }
     context
   }
 

@@ -18,3 +18,5 @@ OsgiKeys.importPackage := Seq("*;resolution:=optional")
 OsgiKeys.privatePackage := Seq("!scala.*")
 
 
+//unmanagedResourceDirectories in Global <<= baseDirectory { base => Seq(base / "lib/msi.gama.ext_1.0.0.jar") }
+
