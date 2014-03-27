@@ -21,13 +21,13 @@ object GamaTask {
 
     addResource(gaml)
 
-    private var _gamaInputs = new ListBuffer[(Prototype[_], String)]
-    private var _gamaVariableOutputs = new ListBuffer[(String, Prototype[_])]
-    private var _gamaOutputs = new ListBuffer[(String, Prototype[_])]
+    private var gamaInputs = new ListBuffer[(Prototype[_], String)]
+    private var gamaOutputs = new ListBuffer[(String, Prototype[_])]
+    private var gamaVariableOutputs = new ListBuffer[(String, Prototype[_])]
 
     def addGamaInput(prototype: Prototype[_], name: String): this.type = {
       this addInput prototype
-      _gamaInputs += prototype -> name
+      gamaInputs += prototype -> name
       this
     }
 
@@ -35,7 +35,7 @@ object GamaTask {
 
     def addGamaOutput(name: String, prototype: Prototype[_]): this.type = {
       this addOutput prototype
-      _gamaOutputs += name -> prototype
+      gamaOutputs += name -> prototype
       this
     }
 
@@ -43,13 +43,13 @@ object GamaTask {
 
     def addGamaVariableOutput(name: String, prototype: Prototype[_]): this.type = {
       this addOutput prototype
-      _gamaVariableOutputs += name -> prototype
+      gamaVariableOutputs += name -> prototype
       this
     }
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    def toTask = new GamaTask(name, gaml, experimentName, steps, _gamaInputs, _gamaOutputs, _gamaVariableOutputs, seed) with builder.Built
+    def toTask = new GamaTask(name, gaml, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
   }
 
   lazy val preload = {
