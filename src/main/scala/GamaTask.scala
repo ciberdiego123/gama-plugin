@@ -75,7 +75,7 @@ abstract class GamaTask(
     val parameterSet = new ParametersSet()
     for ((p, n) <- gamaInputs) parameterSet.put(n, context(p))
     val experimentSpecies = HeadlessSimulationLoader.newHeadlessSimulation(model, experimentName, parameterSet)
-    experimentSpecies.getAgent.getRandomGenerator.setSeed(new java.lang.Long(context(seed)))
+    experimentSpecies.getAgent.setSeed(context(seed).toDouble)
     val scope = experimentSpecies.getCurrentSimulation.getScope
 
     try {
@@ -108,53 +108,6 @@ abstract class GamaTask(
       fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
     } finally experimentSpecies.dispose
   }
-
-  /*def call = {
-    HeadlessSimulationLoader.preloadGAMA();
-    Map<String, String[]> mm = context.getArguments();
-    String[] args = mm.get("application.args");
-    if ( !checkParameters(args) ) {
-      System.exit(-1);
-    }
-    Reader in = new Reader(args[0]);
-    in.parseXmlFile();
-    int numSim = 1;
-    if (args.length>2 && args[2] != null) {
-      numSim = Cast.asInt(null, args[2]);
-    }
-    Iterator<Simulation> it = in.getSimulation().iterator();
-    FakeApplication fa[] = new FakeApplication[50];
-    int n = 0;
-    while (it.hasNext()) {
-      Simulation sim = it.next();
-      for (int i = 0; i < numSim; i++) {
-        Simulation si = new Simulation(sim);
-        try {
-          XMLWriter ou = new XMLWriter(Globals.OUTPUT_PATH + "/"
-            + Globals.OUTPUT_FILENAME + i + ".xml");
-          si.setBufferedWriter(ou);
-          si.loadAndBuild();
-        } catch (Exception e) {
-          e.printStackTrace();
-          System.exit(-1);
-        }
-        fa[i] = new FakeApplication(si);
-        fa[i].start();
-        n++;
-      }
-    }
-    boolean done = false;
-    while (!done) {
-      done = true;
-      for (int i = 0; i < n; i++) {
-
-        if (fa[i].isAlive()) {
-          done = false;
-        }
-      }
-    }
-    return null;
-  }*/
 
 }
 
