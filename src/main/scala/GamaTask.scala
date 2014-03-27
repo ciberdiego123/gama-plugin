@@ -17,7 +17,7 @@ import org.openmole.plugin.task.external.{ ExternalTask, ExternalTaskBuilder }
 import org.openmole.misc.tools.io.FileUtil._
 
 object GamaTask {
-  def apply(name: String, gaml: File, experimentName: String, steps: Int)(implicit plugins: PluginSet) = new ExternalTaskBuilder { builder ⇒
+  def apply(name: String, gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = new ExternalTaskBuilder { builder ⇒
 
     addResource(gaml)
 
@@ -49,7 +49,7 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    def toTask = new GamaTask(name, gaml, experimentName, steps, _gamaInputs, _gamaOutputs, _gamaVariableOutputs) with builder.Built
+    def toTask = new GamaTask(name, gaml, experimentName, steps, _gamaInputs, _gamaOutputs, _gamaVariableOutputs, seed) with builder.Built
   }
 
   lazy val preload = {
@@ -64,7 +64,8 @@ abstract class GamaTask(
     val steps: Int,
     val gamaInputs: Iterable[(Prototype[_], String)],
     val gamaOutputs: Iterable[(String, Prototype[_])],
-    val gamaVariableOutputs: Iterable[(String, Prototype[_])]) extends ExternalTask {
+    val gamaVariableOutputs: Iterable[(String, Prototype[_])],
+    val seed: Prototype[Long]) extends ExternalTask {
 
   override protected def process(context: Context): Context = withWorkDir { tmpDir ⇒
     GamaTask.preload
@@ -74,7 +75,7 @@ abstract class GamaTask(
     val parameterSet = new ParametersSet()
     for ((p, n) <- gamaInputs) parameterSet.put(n, context(p))
     val experimentSpecies = HeadlessSimulationLoader.newHeadlessSimulation(model, experimentName, parameterSet)
-
+    experimentSpecies.getAgent.getRandomGenerator.setSeed(new java.lang.Long(context(seed)))
     val scope = experimentSpecies.getCurrentSimulation.getScope
 
     try {
