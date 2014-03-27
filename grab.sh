@@ -22,3 +22,5 @@ rm msi.gama.ext_1.0.0.jar META-INF
 
 cd -
 
+mv $BUNDLES/org.apache.commons.logging_*.jar $LIBS
+

@@ -3,7 +3,7 @@ name := "openmole-gama"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 resolvers += "ISC-PIF Release" at "http://maven.iscpif.fr/public/"
 
