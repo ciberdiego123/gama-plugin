@@ -9,6 +9,8 @@ resolvers += "ISC-PIF Release" at "http://maven.iscpif.fr/public/"
 
 libraryDependencies += "org.openmole.core" %% "org-openmole-core-implementation" % "0.11.0-SNAPSHOT"
 
+libraryDependencies += "org.openmole.core" %% "org-openmole-plugin-task-external" % "0.11.0-SNAPSHOT"
+
 osgiSettings
 
 OsgiKeys.exportPackage := Seq("org.openmole.plugin.task.gama.*")
