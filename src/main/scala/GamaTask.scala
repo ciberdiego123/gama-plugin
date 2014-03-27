@@ -1,20 +1,14 @@
 package org.openmole.plugin.task.gama
 
-import msi.gama._
-import msi.gama.headless.core.HeadlessSimulationLoader
 import org.openmole.core.implementation.task._
 import org.openmole.core.model.data._
 import org.openmole.core.implementation.data._
 import org.openmole.core.model.task._
 import java.io.File
-import msi.gama.headless.runtime.GamaSimulator
-import msi.gama.kernel.experiment.ParametersSet
 import scala.collection.mutable.ListBuffer
-import org.openmole.core.implementation.tools.InputOutputBuilder
-import msi.gama.outputs.{ AbstractOutputManager, MonitorOutput }
-import org.openmole.misc.workspace.Workspace
 import org.openmole.plugin.task.external.{ ExternalTask, ExternalTaskBuilder }
 import org.openmole.misc.tools.io.FileUtil._
+import msi.gama.headless.openmole.MoleSimulationLoader
 
 object GamaTask {
   def apply(name: String, gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = new ExternalTaskBuilder { builder ⇒
@@ -53,7 +47,7 @@ object GamaTask {
   }
 
   lazy val preload = {
-    HeadlessSimulationLoader.preloadGAMA
+    MoleSimulationLoader.loadGAMA()
   }
 }
 
@@ -70,43 +64,25 @@ abstract class GamaTask(
   override protected def process(context: Context): Context = withWorkDir { tmpDir ⇒
     GamaTask.preload
     val links = prepareInputFiles(context, tmpDir.getCanonicalFile)
-    val model = HeadlessSimulationLoader.loadModel(tmpDir.child(gaml.getName).getAbsolutePath)
+    val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml.getName))
+    val experiment = MoleSimulationLoader.newExperiment(model)
 
-    val parameterSet = new ParametersSet()
-    for ((p, n) <- gamaInputs) parameterSet.put(n, context(p))
-    val experimentSpecies = HeadlessSimulationLoader.newHeadlessSimulation(model, experimentName, parameterSet)
-    experimentSpecies.getAgent.setSeed(context(seed).toDouble)
-    val scope = experimentSpecies.getCurrentSimulation.getScope
+    // try {
+    for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
+    experiment.setup(experimentName, context(seed))
 
-    try {
-      for {
-        s <- 0 until steps
-      } experimentSpecies.getCurrentSimulation.step(scope)
+    for {
+      s <- 0 until steps
+    } experiment.step
 
-      experimentSpecies.getSimulationOutputs.step(scope)
+    val returnContext =
+      Context(
+        gamaVariableOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getVariableOutput(n)) } ++
+          gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
+      )
 
-      val returnContext =
-        Context(
-          gamaVariableOutputs.map {
-            case (n, p) =>
-              Variable.unsecure(
-                p,
-                experimentSpecies.getCurrentSimulation.getDirectVarValue(scope, n)
-              )
-          } ++
-            gamaOutputs.map {
-              case (n, p) =>
-                // FIXME test monitor cast
-                Variable.unsecure(
-                  p,
-                  experimentSpecies.getSimulationOutputs.asInstanceOf[AbstractOutputManager].getOutputWithName(n).asInstanceOf[MonitorOutput].getLastValue
-                )
-            }
-
-        )
-
-      fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
-    } finally experimentSpecies.dispose
+    fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
+    // } finally experiment.dispose
   }
 
 }
