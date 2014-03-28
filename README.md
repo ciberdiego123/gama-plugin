@@ -23,6 +23,7 @@ This plugin works with the developpement version of OpenMOLE, the future 1.0 rel
 2. Launch OpenMOLE with the gama plugin loaded: ./openmole -c -p /path/to/openmole/gama/plugin/repo/target/scala-2.10/openmole-gama_2.10-1.0-SNAPSHOT.jar /path/to/openmole/gama/plugin/repo/bundles/
 3. Execute a workflow launching a Gama model in OpenMOLE:
 
+    ```scala
     import org.openmole.plugin.domain.collection._
     import org.openmole.plugin.sampling.combine._
     import org.openmole.plugin.task.gama._
@@ -44,5 +45,5 @@ This plugin works with the developpement version of OpenMOLE, the future 1.0 rel
     val ex = exploration -< (gama hook ToStringHook()) toExecution
     
     ex.start 
-
+    ```
 
