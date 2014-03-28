@@ -1,7 +1,7 @@
 OpenMOLE GAMA plugin
 ====================
 
-This repository contains the sources for the intergation of [GAMA](https://code.google.com/p/gama-platform/) in [OpenMOLE](www.openmole.org).
+This repository contains the sources for the intergation of [GAMA](https://code.google.com/p/gama-platform/) in [OpenMOLE](http://www.openmole.org).
 
 Licence
 -------
@@ -12,7 +12,7 @@ This plugin is distributed under the GNU Affero GPLv3 software licence. 
 Compilation
 -----------
 
-sbt osgi-bundle
+   ```sbt osgi-bundle```
 
 Usage
 -----
