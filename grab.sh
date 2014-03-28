@@ -18,7 +18,7 @@ do
 done
 
 jar -xvf msi.gama.ext_1.0.0.jar
-rm msi.gama.ext_1.0.0.jar META-INF
+rm -rf msi.gama.ext_1.0.0.jar META-INF
 
 cd -
 

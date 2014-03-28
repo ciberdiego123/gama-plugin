@@ -43,7 +43,7 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    def toTask = new GamaTask(name, gaml, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
+    def toTask = new GamaTask(name, gaml.getName, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
   }
 
   lazy val preload = {
@@ -53,7 +53,7 @@ object GamaTask {
 
 abstract class GamaTask(
     val name: String,
-    val gaml: File,
+    val gaml: String,
     val experimentName: String,
     val steps: Int,
     val gamaInputs: Iterable[(Prototype[_], String)],
@@ -63,8 +63,9 @@ abstract class GamaTask(
 
   override protected def process(context: Context): Context = withWorkDir { tmpDir ⇒
     GamaTask.preload
+
     val links = prepareInputFiles(context, tmpDir.getCanonicalFile)
-    val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml.getName))
+    val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml))
     val experiment = MoleSimulationLoader.newExperiment(model)
 
     // try {
@@ -77,8 +78,14 @@ abstract class GamaTask(
 
     val returnContext =
       Context(
-        gamaVariableOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getVariableOutput(n)) } ++
-          gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
+        gamaVariableOutputs.map {
+          case (n, p) =>
+            Variable.unsecure(p, experiment.getVariableOutput(n))
+        } ++
+          gamaOutputs.map {
+            case (n, p) =>
+              Variable.unsecure(p, experiment.getOutput(n))
+          }
       )
 
     fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
