@@ -14,7 +14,7 @@ Compilation
 
 You must install a version of [sbt](http://www.scala-sbt.org/) superior to 0.13. Then go to the repository and execute:
 
-    ```sbt osgi-bundle```
+    sbt osgi-bundle
 
 Usage
 -----
