@@ -66,11 +66,12 @@ abstract class GamaTask(
 
     val links = prepareInputFiles(context, tmpDir.getCanonicalFile)
     val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml))
+
     val experiment = MoleSimulationLoader.newExperiment(model)
-    experiment.setup(experimentName, context(seed))
 
     try {
       for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
+      experiment.setup(experimentName, context(seed))
 
       for {
         s <- 0 until steps
