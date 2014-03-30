@@ -67,29 +67,29 @@ abstract class GamaTask(
     val links = prepareInputFiles(context, tmpDir.getCanonicalFile)
     val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml))
     val experiment = MoleSimulationLoader.newExperiment(model)
-
-    // try {
-    for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
     experiment.setup(experimentName, context(seed))
 
-    for {
-      s <- 0 until steps
-    } experiment.step
+    try {
+      for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
 
-    val returnContext =
-      Context(
-        gamaVariableOutputs.map {
-          case (n, p) =>
-            Variable.unsecure(p, experiment.getVariableOutput(n))
-        } ++
-          gamaOutputs.map {
+      for {
+        s <- 0 until steps
+      } experiment.step
+
+      val returnContext =
+        Context(
+          gamaVariableOutputs.map {
             case (n, p) =>
-              Variable.unsecure(p, experiment.getOutput(n))
-          }
-      )
+              Variable.unsecure(p, experiment.getVariableOutput(n))
+          } ++
+            gamaOutputs.map {
+              case (n, p) =>
+                Variable.unsecure(p, experiment.getOutput(n))
+            }
+        )
 
-    fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
-    // } finally experiment.dispose
+      fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
+    } finally experiment.dispose
   }
 
 }
