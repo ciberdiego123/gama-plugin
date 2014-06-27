@@ -2,11 +2,11 @@ com.google.guava_10.0.1.v201203051515.jar
 com.google.inject_3.0.0.v201203062045.jar
 com.ibm.icu_4.4.2.v20110823.jar
 javax.inject_1.0.0.v20091030.jar
-msi.gama.core_1.6.0.jar
+msi.gama.core_*.jar
 msi.gama.ext_1.0.0.jar
 msi.gama.headless_1.0.0.0.jar
 msi.gama.lang.gaml_1.4.2.jar
-msi.gama.models_1.6.1.*.jar
+msi.gama.models_*.jar
 msi.gama.processor_1.4.0.jar
 org.antlr.runtime_3.2.0.v201101311130.jar
 org.apache.commons.cli_1.2.0.v201105210650.jar
@@ -20,7 +20,7 @@ org.eclipse.emf.common_2.7.0.v20120127-1122.jar
 org.eclipse.emf.ecore_2.7.0.v20120127-1122.jar
 org.eclipse.emf.ecore.xmi_2.7.0.v20120127-1122.jar
 org.eclipse.emf.edit_2.7.2.v20120130-0943.jar
-org.eclipse.emf.mwe2.runtime_2.4.1.*.jar
+org.eclipse.emf.mwe2.runtime_*.jar
 org.eclipse.emf.mwe.core_1.2.1.*.jar
 org.eclipse.emf.mwe.utils_1.3.1.*.jar
 org.eclipse.emf.validation_1.4.0.v20100428-2315.jar
@@ -34,4 +34,3 @@ org.eclipse.xtext.generator_2.4.1.v201304180855.jar
 org.eclipse.xtext.util_2.4.1.v201304180855.jar
 org.eclipse.xtext.xbase.lib_2.4.1.v201304180855.jar
 org.hamcrest.core_1.1.0.v20090501071000.jar
-org.junit_4.8.2.v4_8_2_v20110321-1705.jar

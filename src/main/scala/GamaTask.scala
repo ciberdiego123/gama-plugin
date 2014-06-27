@@ -1,5 +1,10 @@
 package org.openmole.plugin.task.gama
 
+import java.util.logging.{Level, Logger}
+
+import com.google.common.base.Stopwatch
+import com.google.inject.internal.util.$Stopwatch
+import msi.gama.headless.core.HeadlessSimulationLoader
 import org.openmole.core.implementation.task._
 import org.openmole.core.model.data._
 import org.openmole.core.implementation.data._
@@ -48,6 +53,9 @@ object GamaTask {
 
   lazy val preload = {
     MoleSimulationLoader.loadGAMA()
+    Logger.getLogger(classOf[HeadlessSimulationLoader].getCanonicalName).setLevel(Level.INFO)
+    Logger.getLogger(classOf[$Stopwatch].getCanonicalName).setLevel(Level.INFO)
+
   }
 }
 
