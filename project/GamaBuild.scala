@@ -20,7 +20,7 @@ object GamaBuild extends Build {
 
 
   lazy val core = Project(
-    id = "openmole-core-gama",
+    id = "openmole-gama",
     base = file("./org.openmole.plugin.task.gama/"),
     settings = gamaSettings ++ Seq(
       name := "task.gama",
