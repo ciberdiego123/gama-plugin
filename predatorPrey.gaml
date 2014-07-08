@@ -24,7 +24,7 @@ global {
 		create prey number: nb_preys_init ;
 		create predator number: nb_predator_init ;
 do write {
-				arg message value: 'nb predatir...' + nb_predator_init ;
+				arg message value: 'nb predator...' + nb_predator_init ;
 			}
 	}
 	

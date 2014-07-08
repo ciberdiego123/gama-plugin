@@ -24,7 +24,7 @@ This plugin works with the developpement version of OpenMOLE, the future 1.0 rel
 1. Due to a bug in the JVM you should first remove the -XX:+UseG1GC option in the launching script of OpenMOLE (unless you are using java 8).
 2. Launch OpenMOLE with the gama plugin loaded: 
 
-    ```./openmole -c -p /path/to/openmole/gama/plugin/repo/target/scala-2.10/openmole-gama_2.10-1.0-SNAPSHOT.jar /path/to/openmole/gama/plugin/repo/bundles/```
+    ```./openmole -c -p /path/to/openmole/gama/plugin/repo/org.openmole.plugin.task.gama/target/scala-2.11/task-gama_2.11-1.0-SNAPSHOT.jar /path/to/openmole/gama/plugin/repo/org.openmole.ide.plugin.task.gama/target/scala-2.11/task-ide-gama_2.11-1.0-SNAPSHOT.jar /path/to/openmole/gama/plugin/repo/bundles/```
 
 3. Execute a workflow launching a Gama model in OpenMOLE:
 

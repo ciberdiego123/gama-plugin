@@ -36,7 +36,7 @@ object GamaBuild extends Build {
       name := "task-ide-gama",
       libraryDependencies += "org.openmole.core" %% "org-openmole-core-model" % "1.0-SNAPSHOT",
       libraryDependencies += "org.openmole.ide" %% "org-openmole-ide-core-implementation" % "1.0-SNAPSHOT",
-      OsgiKeys.exportPackage := Seq("org.openmole.ide.plugin.task.gama.*","org.openmole.plugin.task.gama.*"),
+      OsgiKeys.exportPackage := Seq("org.openmole.ide.plugin.task.gama.*"),
       OsgiKeys.bundleActivator := Option("org.openmole.ide.plugin.task.gama.Activator")
     )
   ) dependsOn (core)
