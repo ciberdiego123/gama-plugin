@@ -30,60 +30,55 @@ class GamaTaskDataUI(val name: String = "",
                      val seed: Option[PrototypeDataProxyUI] = None,
                      val gamaInputs: Seq[(PrototypeDataProxyUI, String, Int)] = Seq.empty,
                      val gamaOutputs: Seq[(String, PrototypeDataProxyUI, Int)] = Seq.empty,
-                     val gamaVariableOutputs: Seq[(String, PrototypeDataProxyUI)] = Seq.empty,
                      val resources: List[File] = List.empty,
                      val inputs: Seq[PrototypeDataProxyUI] = Seq.empty,
                      val outputs: Seq[PrototypeDataProxyUI] = Seq.empty,
                      val inputParameters: Map[PrototypeDataProxyUI, String] = Map.empty) extends TaskDataUI {
 
-def coreObject (plugins: PluginSet) = util.Try {
-val gt = GamaTask (name, gaml, experimentName, steps, seed.get.dataUI.coreObject.get.asInstanceOf[Prototype[Long]] ) (plugins)
+  println("inputs " + gamaInputs)
+  println("outputs " + gamaOutputs)
+  def coreObject(plugins: PluginSet) = util.Try {
+    val gt = GamaTask(name, gaml, experimentName, steps, seed.get.dataUI.coreObject.get.asInstanceOf[Prototype[Long]])(plugins)
 
-gamaInputs.foreach {
-case (p, n, _) ⇒ gt addGamaInput (p.dataUI.coreObject.get, n)
-}
+    gamaInputs.foreach {
+      case (p, n, _) ⇒ gt addGamaInput(p.dataUI.coreObject.get, n)
+    }
 
-gamaOutputs.foreach {
-case (n, p, _) ⇒ gt addGamaOutput (n, p.dataUI.coreObject.get)
-}
+    gamaOutputs.foreach {
+      case (n, p, _) ⇒ gt addGamaOutput(n, p.dataUI.coreObject.get)
+    }
 
-gamaVariableOutputs foreach {
-case (vost, vop) =>
-gt addGamaVariableOutput (vost, vop.dataUI.coreObject.get)
-}
+    initialise(gt)
 
-initialise (gt)
+    resources.foreach {
+      rfile ⇒
+        gt addResource rfile
+    }
 
-resources.foreach {
-rfile ⇒
-gt addResource rfile
-}
+    gt.toTask
+  }
 
-gt.toTask
-}
+  def coreClass = classOf[GamaTask]
 
-def coreClass = classOf[GamaTask]
+  override def imagePath = "img/gamaTask.png"
 
-override def imagePath = "img/gamaTask.png"
+  def fatImagePath = "img/gamaTask_fat.png"
 
-def fatImagePath = "img/gamaTask_fat.png"
+  def buildPanelUI = new GamaTaskPanelUI(this)
 
-def buildPanelUI = new GamaTaskPanelUI (this)
-
-def doClone (ins: Seq[PrototypeDataProxyUI],
-outs: Seq[PrototypeDataProxyUI],
-params: Map[PrototypeDataProxyUI, String] ) = new GamaTaskDataUI (name,
-gaml,
-experimentName,
-steps,
-seed,
-Proxies.instance.filterListTupleIn (gamaInputs.toList),
-Proxies.instance.filterListTupleOut (gamaOutputs.toList),
-gamaVariableOutputs,
-resources,
-ins,
-outs,
-params)
+  def doClone(ins: Seq[PrototypeDataProxyUI],
+              outs: Seq[PrototypeDataProxyUI],
+              params: Map[PrototypeDataProxyUI, String]) = new GamaTaskDataUI(name,
+    gaml,
+    experimentName,
+    steps,
+    seed,
+    Proxies.instance.filterListTupleIn(gamaInputs.toList),
+    Proxies.instance.filterListTupleOut(gamaOutputs.toList),
+    resources,
+    ins,
+    outs,
+    params)
 
 
 }
