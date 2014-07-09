@@ -35,8 +35,6 @@ class GamaTaskDataUI(val name: String = "",
                      val outputs: Seq[PrototypeDataProxyUI] = Seq.empty,
                      val inputParameters: Map[PrototypeDataProxyUI, String] = Map.empty) extends TaskDataUI {
 
-  println("inputs " + gamaInputs)
-  println("outputs " + gamaOutputs)
   def coreObject(plugins: PluginSet) = util.Try {
     val gt = GamaTask(name, gaml, experimentName, steps, seed.get.dataUI.coreObject.get.asInstanceOf[Prototype[Long]])(plugins)
 
