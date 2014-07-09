@@ -7,7 +7,7 @@ object GamaBuild extends Build {
 
 
   val gamaSettings = Defaults.defaultSettings ++ osgiSettings ++ Seq(
-    OsgiKeys.importPackage := Seq("*;resolution:=optional"),
+    OsgiKeys.importPackage := Seq("*"),
     OsgiKeys.privatePackage := Seq("!scala.*"),
     resolvers += "ISC-PIF Release" at "http://maven.iscpif.fr/public/",
     libraryDependencies ++= Seq("org.openmole.core" %% "org-openmole-core-implementation" % "1.0-SNAPSHOT"),
