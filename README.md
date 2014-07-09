@@ -39,6 +39,8 @@ This plugin works with the developpement version of OpenMOLE, the future 1.0 rel
     val nb_preys_init = Prototype[Int]("nb_preys_init")
     
     // Gama task
+    // The third argument of the GamaTask is the gama experiment name
+    // and the fourth argument is the number of steps
     val gama = GamaTask("hello", "/path/to/predatorPrey.gaml", "preyPred", 10)
     
     gama addGamaInput nb_preys_init
