@@ -13,9 +13,10 @@ import org.openmole.misc.tools.io.FileUtil._
 import msi.gama.headless.openmole.MoleSimulationLoader
 
 object GamaTask {
-  def apply(name: String, gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = new ExternalTaskBuilder { builder ⇒
 
-    addResource(gaml)
+  private def builder(name: String, gamlPath: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = new ExternalTaskBuilder { builder ⇒
+
+    //addResource(gaml)
 
     private var gamaInputs = new ListBuffer[(Prototype[_], String)]
     private var gamaOutputs = new ListBuffer[(String, Prototype[_])]
@@ -45,7 +46,20 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    def toTask = new GamaTask(name, gaml.getName, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
+    def toTask = new GamaTask(name, gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
+  }
+
+
+  def apply(name: String, gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = {
+    val b = builder(name, gaml.getName, experimentName, steps, seed)
+    b addResource gaml
+    b
+  }
+
+  def withWorkspace(name: String, workspace: File, gamlPath: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = {
+    val b = builder(name, gamlPath, experimentName, steps, seed)
+    workspace.listFiles.foreach (f => b addResource f)
+    b
   }
 
   lazy val preload = {
