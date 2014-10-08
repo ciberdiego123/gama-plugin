@@ -7,11 +7,13 @@ import org.openmole.core.model.data._
 import org.openmole.core.implementation.data._
 import org.openmole.core.model.task._
 import java.io.File
+import org.openmole.misc.exception.UserBadDataError
+
 import scala.collection.mutable.ListBuffer
 import org.openmole.plugin.task.external.{ ExternalTask, ExternalTaskBuilder }
 import org.openmole.misc.tools.io.FileUtil._
 import msi.gama.headless.openmole.MoleSimulationLoader
-
+import org.openmole.misc.tools.io.Prettifier._
 object GamaTask {
 
   private def builder(name: String, gamlPath: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = new ExternalTaskBuilder { builder ⇒
@@ -79,35 +81,44 @@ abstract class GamaTask(
     val seed: Prototype[Long]) extends ExternalTask {
 
   override protected def process(context: Context): Context = withWorkDir { tmpDir ⇒
-    GamaTask.preload
-
-    val links = prepareInputFiles(context, tmpDir.getCanonicalFile)
-    val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml))
-
-    val experiment = MoleSimulationLoader.newExperiment(model)
-
     try {
-      for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
-      experiment.setup(experimentName, context(seed))
 
-      for {
-        s <- 0 until steps
-      } experiment.step
+      GamaTask.preload
 
-      val returnContext =
-        Context(
-          gamaVariableOutputs.map {
-            case (n, p) =>
-              Variable.unsecure(p, experiment.getVariableOutput(n))
-          } ++
-            gamaOutputs.map {
+      val links = prepareInputFiles(context, tmpDir.getCanonicalFile)
+      val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml))
+
+      val experiment = MoleSimulationLoader.newExperiment(model)
+
+      try {
+        for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
+        experiment.setup(experimentName, context(seed))
+
+        for {
+          s <- 0 until steps
+        } experiment.step
+
+        val returnContext =
+          Context(
+            gamaVariableOutputs.map {
               case (n, p) =>
-                Variable.unsecure(p, experiment.getOutput(n))
-            }
-        )
+                Variable.unsecure(p, experiment.getVariableOutput(n))
+            } ++
+              gamaOutputs.map {
+                case (n, p) =>
+                  Variable.unsecure(p, experiment.getOutput(n))
+              }
+          )
 
-      fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
-    } finally experiment.dispose
+        fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, links)
+      } finally experiment.dispose
+    }catch {
+      case t: Throwable ⇒
+        throw new UserBadDataError(
+          s"""Gama raised the exception:
+          |""".stripMargin + t.stackStringWithMargin
+        )
+    }
   }
 
 }
