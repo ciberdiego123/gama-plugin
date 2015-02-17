@@ -56,7 +56,9 @@ object GamaTask {
     }
 
     def toTask =
-      new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, gamaSeed) with builder.Built
+      new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, gamaSeed) with builder.Built {
+        override val inputs = super.inputs + seed
+      }
 
   }
 
@@ -87,6 +89,7 @@ abstract class GamaTask(
     val gamaOutputs: Iterable[(String, Prototype[_])],
     val gamaVariableOutputs: Iterable[(String, Prototype[_])],
     val seed: Prototype[Long]) extends ExternalTask {
+
 
   override protected def process(context: Context): Context = withWorkDir { tmpDir ⇒
     try {
