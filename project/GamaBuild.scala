@@ -26,7 +26,8 @@ object GamaBuild extends Build {
     settings = gamaSettings ++ Seq(
       name := "task.gama",
       libraryDependencies += "org.openmole.core" %% "org-openmole-plugin-task-external" % openmoleVersion,
-      OsgiKeys.exportPackage := Seq("org.openmole.plugin.task.gama.*")
+      OsgiKeys.exportPackage := Seq("org.openmole.plugin.task.gama.*"),
+      OsgiKeys.bundleActivator := Some("org.openmole.plugin.task.gama.Activator")
     )
   )
 
