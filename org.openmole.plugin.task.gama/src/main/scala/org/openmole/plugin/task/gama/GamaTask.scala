@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
 
 object GamaTask {
 
-  class Builder(gamlPath: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed) extends ExternalTaskBuilder { builder ⇒
+  class Builder(gamlPath: String, experimentName: String, steps: Int) extends ExternalTaskBuilder { builder ⇒
     private var gamaInputs = new ListBuffer[(Prototype[_], String)]
     private var gamaOutputs = new ListBuffer[(String, Prototype[_])]
     private var gamaVariableOutputs = new ListBuffer[(String, Prototype[_])]
@@ -49,19 +49,26 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
+    var gamaSeed: Prototype[Long] = Task.openMOLESeed
+    def setSeed(seed: Prototype[Long]): this.type = {
+      builder.gamaSeed = seed
+      this
+    }
+
     def toTask =
-      new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
+      new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, gamaSeed) with builder.Built
+
   }
 
 
-  def apply(gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = {
-    val b = new Builder(gaml.getName, experimentName, steps, seed)
+  def apply(gaml: File, experimentName: String, steps: Int)(implicit plugins: PluginSet) = {
+    val b = new Builder(gaml.getName, experimentName, steps)
     b addResource gaml
     b
   }
 
-  def withWorkspace(workspace: File, model: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed) = {
-    val b = new Builder(model, experimentName, steps, seed)
+  def apply(workspace: File, model: String, experimentName: String, steps: Int) = {
+    val b = new Builder(model, experimentName, steps)
     workspace.listFiles.foreach (f => b addResource (f))
     b
   }

@@ -22,6 +22,7 @@ package org.openmole.plugin.task
 import java.io.File
 
 import org.openmole.core.workflow.data._
+import org.openmole.misc.macros.Keyword._
 
 package object gama {
 
@@ -38,6 +39,10 @@ package object gama {
   lazy val gamaVariableOutput = new {
     def +=(name: String, prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(name, prototype)
     def +=(prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(prototype)
+  }
+
+  lazy val gamaSeed = new {
+    def :=(seed: Prototype[Long]) = (_: GamaTask.Builder).setSeed(seed)
   }
 
 }
