@@ -18,6 +18,30 @@
 
 package org.openmole.plugin.task
 
+
+import java.io.File
+
+import org.openmole.core.workflow.data._
+
 package object gama {
+
+  lazy val gamaInputs = new {
+    def +=(p: Prototype[_]) = (_: GamaTask.Builder).addGamaInput(p)
+    def +=(p: Prototype[_], name: String) = (_: GamaTask.Builder).addGamaInput(p, name)
+  }
+
+  lazy val gamaOutputs = new {
+    def +=(name: String, prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaOutput(name, prototype)
+    def +=(prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaOutput(prototype)
+  }
+
+  lazy val gamaVariableOutput = new {
+    def +=(name: String, prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(name, prototype)
+    def +=(prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(prototype)
+  }
+
+  lazy val gamaWorkspace = new {
+    def +=(workspace: File) = (_: GamaTask.Builder).addGamaWorkspace(workspace)
+  }
 
 }

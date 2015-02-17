@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
 
 object GamaTask {
 
-  private def builder(gamlPath: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed) = new ExternalTaskBuilder { builder ⇒
+  class Builder(gamlPath: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed) extends ExternalTaskBuilder { builder ⇒
     private var gamaInputs = new ListBuffer[(Prototype[_], String)]
     private var gamaOutputs = new ListBuffer[(String, Prototype[_])]
     private var gamaVariableOutputs = new ListBuffer[(String, Prototype[_])]
@@ -54,7 +54,7 @@ object GamaTask {
 
 
   def apply(gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = {
-    val b = builder(gaml.getName, experimentName, steps, seed)
+    val b = new Builder(gaml.getName, experimentName, steps, seed)
     b addResource gaml
     b
   }
