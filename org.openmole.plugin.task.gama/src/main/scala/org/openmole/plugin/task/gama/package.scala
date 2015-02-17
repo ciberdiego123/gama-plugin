@@ -26,13 +26,13 @@ import org.openmole.core.workflow.data._
 package object gama {
 
   lazy val gamaInputs = new {
-    def +=(p: Prototype[_]) = (_: GamaTask.Builder).addGamaInput(p)
+    def +=(p: Prototype[_]*) = (_: GamaTask.Builder).addGamaInput(p: _*)
     def +=(p: Prototype[_], name: String) = (_: GamaTask.Builder).addGamaInput(p, name)
   }
 
   lazy val gamaOutputs = new {
     def +=(name: String, prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaOutput(name, prototype)
-    def +=(prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaOutput(prototype)
+    def +=(prototype: Prototype[_]*) = (_: GamaTask.Builder).addGamaOutput(prototype: _*)
   }
 
   lazy val gamaVariableOutput = new {

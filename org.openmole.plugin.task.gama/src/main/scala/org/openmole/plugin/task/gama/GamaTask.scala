@@ -25,7 +25,10 @@ object GamaTask {
       this
     }
 
-    def addGamaInput(prototype: Prototype[_]): this.type = addGamaInput(prototype, prototype.name)
+    def addGamaInput(prototype: Prototype[_]*): this.type = {
+      prototype.foreach(p => addGamaInput(p, p.name))
+      this
+    }
 
     def addGamaOutput(name: String, prototype: Prototype[_]): this.type = {
       this addOutput prototype
@@ -33,7 +36,10 @@ object GamaTask {
       this
     }
 
-    def addGamaOutput(prototype: Prototype[_]): this.type = addGamaOutput(prototype.name, prototype)
+    def addGamaOutput(prototype: Prototype[_]*): this.type = {
+      prototype.foreach(p => addGamaOutput(p.name, p))
+      this
+    }
 
     def addGamaVariableOutput(name: String, prototype: Prototype[_]): this.type = {
       this addOutput prototype
