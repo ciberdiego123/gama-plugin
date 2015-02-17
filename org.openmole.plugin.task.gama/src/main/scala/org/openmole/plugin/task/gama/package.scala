@@ -40,8 +40,4 @@ package object gama {
     def +=(prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(prototype)
   }
 
-  lazy val gamaWorkspace = new {
-    def +=(workspace: File) = (_: GamaTask.Builder).addGamaWorkspace(workspace)
-  }
-
 }

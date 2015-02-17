@@ -43,11 +43,6 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    def addGamaWorkspace(workspace: File) = {
-      workspace.listFiles.foreach (f => addResource (f))
-      this
-    }
-
     def toTask =
       new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
   }
@@ -56,6 +51,12 @@ object GamaTask {
   def apply(gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = {
     val b = new Builder(gaml.getName, experimentName, steps, seed)
     b addResource gaml
+    b
+  }
+
+  def withWorkspace(workspace: File, model: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed) = {
+    val b = new Builder(model, experimentName, steps, seed)
+    workspace.listFiles.foreach (f => b addResource (f))
     b
   }
 
