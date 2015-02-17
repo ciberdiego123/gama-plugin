@@ -1,18 +1,16 @@
 package org.openmole.plugin.task.gama
 
-import java.util.logging.{Level, Logger}
-
-import org.openmole.core.dsl._
 import java.io.File
+
+import msi.gama.headless.openmole.MoleSimulationLoader
 import org.openmole.core.workflow.data._
 import org.openmole.core.workflow.task._
 import org.openmole.misc.exception.UserBadDataError
+import org.openmole.misc.tools.io.FileUtil._
+import org.openmole.misc.tools.io.Prettifier._
+import org.openmole.plugin.task.external._
 
 import scala.collection.mutable.ListBuffer
-import org.openmole.plugin.task.external._
-import org.openmole.misc.tools.io.FileUtil._
-import msi.gama.headless.openmole.MoleSimulationLoader
-import org.openmole.misc.tools.io.Prettifier._
 
 object GamaTask {
 
@@ -45,19 +43,19 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    def toTask = new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
+    def addGamaWorkspace(workspace: File) = {
+      workspace.listFiles.foreach (f => addResource (f))
+      this
+    }
+
+    def toTask =
+      new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, seed) with builder.Built
   }
 
 
   def apply(gaml: File, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = {
     val b = builder(gaml.getName, experimentName, steps, seed)
     b addResource gaml
-    b
-  }
-
-  def withWorkspace(workspace: File, gamlPath: String, experimentName: String, steps: Int, seed: Prototype[Long] = Task.openMOLESeed)(implicit plugins: PluginSet) = {
-    val b = builder(gamlPath, experimentName, steps, seed)
-    workspace.listFiles.foreach (f => b addResource f)
     b
   }
 
