@@ -5,7 +5,7 @@ import com.typesafe.sbt.osgi.SbtOsgi.{OsgiKeys, osgiSettings}
 
 object GamaBuild extends Build {
 
-  lazy val openmoleVersion = "4.0-SNAPSHOT"
+  lazy val openmoleVersion = "4.1"
 
   val gamaSettings = settings ++ osgiSettings ++ Seq(
     OsgiKeys.importPackage := Seq("*"),
@@ -16,7 +16,7 @@ object GamaBuild extends Build {
     unmanagedBase := baseDirectory.value / "../lib",
     name := "openmole-gama",
     organization := "org.openmole",
-    version := "4.0-SNAPSHOT",
+    version := "4.1",
     scalaVersion := "2.11.5"
   )
 
