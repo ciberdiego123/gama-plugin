@@ -5,9 +5,9 @@ import java.io.File
 import msi.gama.headless.openmole.MoleSimulationLoader
 import org.openmole.core.workflow.data._
 import org.openmole.core.workflow.task._
-import org.openmole.misc.exception.UserBadDataError
-import org.openmole.misc.tools.io.FileUtil._
-import org.openmole.misc.tools.io.Prettifier._
+import org.openmole.core.exception.UserBadDataError
+import org.openmole.tool.file._
+import org.openmole.core.tools.io.Prettifier._
 import org.openmole.plugin.task.external._
 
 import scala.collection.mutable.ListBuffer
