@@ -98,8 +98,9 @@ abstract class GamaTask(
       GamaTask.preload
 
       prepareInputFiles(context, tmpDir.getCanonicalFile, workdir)
-      val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml))
 
+      val modelFile = tmpDir.child(workdir).child(gaml)
+      val model = MoleSimulationLoader.loadModel(modelFile)
       val experiment = MoleSimulationLoader.newExperiment(model)
 
       try {
