@@ -49,15 +49,15 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    var gamaSeed: Prototype[Long] = Task.openMOLESeed
+    var gamaSeed: Option[Prototype[Long]] = None
     def setSeed(seed: Prototype[Long]): this.type = {
-      builder.gamaSeed = seed
+      builder.gamaSeed = Some(seed)
       this
     }
 
     def toTask =
       new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, gamaSeed, workdir) with builder.Built {
-        override val inputs = super.inputs + seed
+        override val inputs = super.inputs ++ seed
       }
 
   }
@@ -88,7 +88,7 @@ abstract class GamaTask(
     val gamaInputs: Iterable[(Prototype[_], String)],
     val gamaOutputs: Iterable[(String, Prototype[_])],
     val gamaVariableOutputs: Iterable[(String, Prototype[_])],
-    val seed: Prototype[Long],
+    val seed: Option[Prototype[Long]],
     val workdir: String) extends ExternalTask {
 
 
@@ -105,7 +105,7 @@ abstract class GamaTask(
 
       try {
         for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
-        experiment.setup(experimentName, context(seed))
+        experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextLong()))
 
         for {
           s <- 0 until steps
