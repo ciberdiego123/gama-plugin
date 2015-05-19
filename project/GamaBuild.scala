@@ -12,12 +12,12 @@ object GamaBuild extends Build {
     OsgiKeys.privatePackage := Seq("!scala.*"),
     resolvers += "ISC-PIF Release" at "http://maven.iscpif.fr/public/",
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    libraryDependencies ++= Seq("org.openmole.core" %% "org-openmole-core-dsl" % openmoleVersion),
+    libraryDependencies ++= Seq("org.openmole" %% "org-openmole-core-dsl" % openmoleVersion),
     unmanagedBase := baseDirectory.value / "../lib",
     name := "openmole-gama",
     organization := "org.openmole",
     version := "5.0-SNAPSHOT",
-    scalaVersion := "2.11.5"
+    scalaVersion := "2.11.6"
   )
 
   lazy val core = Project(

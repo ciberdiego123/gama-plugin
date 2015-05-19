@@ -92,14 +92,14 @@ abstract class GamaTask(
     val workdir: String) extends ExternalTask {
 
 
-  override protected def process(context: Context): Context = withWorkDir { tmpDir ⇒
+  override protected def process(context: Context)(implicit rng: RandomProvider): Context = withWorkDir { tmpDir ⇒
     try {
 
       GamaTask.preload
 
       prepareInputFiles(context, tmpDir.getCanonicalFile, workdir)
 
-      val modelFile = tmpDir.child(workdir).child(gaml)
+      val modelFile = tmpDir / workdir / gaml
       val model = MoleSimulationLoader.loadModel(modelFile)
       val experiment = MoleSimulationLoader.newExperiment(model)
 
