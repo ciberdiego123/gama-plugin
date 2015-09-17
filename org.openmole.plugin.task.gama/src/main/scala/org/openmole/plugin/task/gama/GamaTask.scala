@@ -5,12 +5,13 @@ import java.io.File
 import msi.gama.headless.openmole.MoleSimulationLoader
 import org.openmole.core.workflow.data._
 import org.openmole.core.workflow.task._
-import org.openmole.misc.exception.UserBadDataError
-import org.openmole.misc.tools.io.FileUtil._
-import org.openmole.misc.tools.io.Prettifier._
+import org.openmole.core.exception._
+import org.openmole.tool.file._
 import org.openmole.plugin.task.external._
+import org.openmole.core.tools.io.Prettifier._
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Try
 
 object GamaTask {
 
@@ -49,21 +50,21 @@ object GamaTask {
 
     def addGamaVariableOutput(prototype: Prototype[_]): this.type = addGamaVariableOutput(prototype.name, prototype)
 
-    var gamaSeed: Prototype[Long] = Task.openMOLESeed
+    var gamaSeed: Option[Prototype[Long]] = None
     def setSeed(seed: Prototype[Long]): this.type = {
-      builder.gamaSeed = seed
+      builder.gamaSeed = Some(seed)
       this
     }
 
     def toTask =
       new GamaTask(gamlPath, experimentName, steps, gamaInputs, gamaOutputs, gamaVariableOutputs, gamaSeed) with builder.Built {
-        override val inputs = super.inputs + seed
+        override val inputs = super.inputs ++ seed
       }
 
   }
 
 
-  def apply(gaml: File, experimentName: String, steps: Int)(implicit plugins: PluginSet) = {
+  def apply(gaml: File, experimentName: String, steps: Int) = {
     val b = new Builder(gaml.getName, experimentName, steps)
     b addResource gaml
     b
@@ -88,22 +89,22 @@ abstract class GamaTask(
     val gamaInputs: Iterable[(Prototype[_], String)],
     val gamaOutputs: Iterable[(String, Prototype[_])],
     val gamaVariableOutputs: Iterable[(String, Prototype[_])],
-    val seed: Prototype[Long]) extends ExternalTask {
+    val seed: Option[Prototype[Long]]) extends ExternalTask {
 
 
-  override protected def process(context: Context): Context = withWorkDir { tmpDir ⇒
+  override protected def process(context: Context)(implicit rng: RandomProvider): Context = withWorkDir { tmpDir ⇒
     try {
 
       GamaTask.preload
 
       prepareInputFiles(context, tmpDir.getCanonicalFile, "")
-      val model = MoleSimulationLoader.loadModel(tmpDir.child(gaml))
+      val model = MoleSimulationLoader.loadModel(tmpDir / gaml)
 
       val experiment = MoleSimulationLoader.newExperiment(model)
 
       try {
         for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
-        experiment.setup(experimentName, context(seed))
+        experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextLong))
 
         for {
           s <- 0 until steps
@@ -122,7 +123,7 @@ abstract class GamaTask(
           )
 
         fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, "")
-      } finally experiment.dispose
+      } finally Try(experiment.dispose)
     }catch {
       case t: Throwable ⇒
         throw new UserBadDataError(

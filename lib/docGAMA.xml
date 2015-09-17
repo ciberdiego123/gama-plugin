@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<doc>
+<constantsCategories/>
+<constants/>
+<operatorsCategories>
+<category id="Iterator operators"/>
+</operatorsCategories>
+<operators/>
+<skills/>
+<architectures/>
+<speciess/>
+<insideStatementKinds>
+<insideStatementKind symbol="Behavior"/>
+<insideStatementKind symbol="Single statement"/>
+<insideStatementKind symbol="Species"/>
+<insideStatementKind symbol="Model"/>
+</insideStatementKinds>
+<insideStatementSymbols/>
+<statementsKinds>
+<kind symbol="Sequence of statements or action"/>
+</statementsKinds>
+<statements>
+<statement id="run" kind="Sequence of statements or action" name="run">
+<facets>
+<facet name="of" omissible="false" optional="false" type="string"/>
+<facet name="experiment" omissible="true" optional="false" type="string"/>
+<facet name="end_cycle" omissible="false" optional="true" type="int"/>
+<facet name="core" omissible="false" optional="true" type="int"/>
+<facet name="out" omissible="false" optional="true" type="string"/>
+<facet name="with_output" omissible="false" optional="true" type="map"/>
+<facet name="with_param" omissible="false" optional="true" type="map"/>
+</facets>
+<inside>
+<symbols/>
+<kinds>
+<kind>Behavior</kind>
+<kind>Single statement</kind>
+<kind>Species</kind>
+<kind>Model</kind>
+</kinds>
+</inside>
+</statement>
+</statements>
+</doc>
+
