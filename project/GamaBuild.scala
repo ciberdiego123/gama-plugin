@@ -1,13 +1,13 @@
 import sbt._
 import Keys._
 import com.typesafe.sbt.osgi.SbtOsgi.{OsgiKeys, osgiSettings}
-
+import com.typesafe.sbt.SbtScalariform.scalariformSettings
 
 object GamaBuild extends Build {
 
   lazy val openmoleVersion = "6.0-SNAPSHOT"
 
-  val gamaSettings = settings ++ osgiSettings ++ Seq(
+  val gamaSettings = settings ++ osgiSettings ++ scalariformSettings ++ Seq(
     OsgiKeys.importPackage := Seq("*"),
     OsgiKeys.privatePackage := Seq("!scala.*"),
     resolvers += "ISC-PIF Release" at "http://maven.iscpif.fr/public/",

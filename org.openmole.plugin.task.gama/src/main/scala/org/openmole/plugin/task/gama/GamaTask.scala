@@ -63,7 +63,6 @@ object GamaTask {
 
   }
 
-
   def apply(gaml: File, experimentName: String, steps: Int) = {
     val b = new Builder(gaml.getName, experimentName, steps)
     b addResource gaml
@@ -72,12 +71,18 @@ object GamaTask {
 
   def apply(workspace: File, model: String, experimentName: String, steps: Int) = {
     val b = new Builder(model, experimentName, steps)
-    workspace.listFiles.foreach (f => b addResource (f))
+    workspace.listFiles.foreach(f => b addResource (f))
     b
   }
 
   lazy val preload = {
     MoleSimulationLoader.loadGAMA()
+  }
+
+  private def withDisposable[T, D <: { def dispose() }](d: => D)(f: D => T): T = {
+    val disposable = d
+    try f(disposable)
+    finally Try(disposable.dispose())
   }
 
 }
@@ -89,8 +94,8 @@ abstract class GamaTask(
     val gamaInputs: Iterable[(Prototype[_], String)],
     val gamaOutputs: Iterable[(String, Prototype[_])],
     val gamaVariableOutputs: Iterable[(String, Prototype[_])],
-    val seed: Option[Prototype[Long]]) extends ExternalTask {
-
+    val seed: Option[Prototype[Long]]
+) extends ExternalTask {
 
   override protected def process(context: Context)(implicit rng: RandomProvider): Context = withWorkDir { tmpDir ⇒
     try {
@@ -98,33 +103,34 @@ abstract class GamaTask(
       GamaTask.preload
 
       prepareInputFiles(context, tmpDir.getCanonicalFile, "")
-      val model = MoleSimulationLoader.loadModel(tmpDir / gaml)
 
-      val experiment = MoleSimulationLoader.newExperiment(model)
+      GamaTask.withDisposable(MoleSimulationLoader.loadModel(tmpDir / gaml)) { model =>
+        GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
-      try {
-        for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
-        experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextLong))
+          for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
+          experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextLong))
 
-        for {
-          s <- 0 until steps
-        } experiment.step
+          for {
+            s <- 0 until steps
+          } experiment.step
 
-        val returnContext =
-          Context(
-            gamaVariableOutputs.map {
-              case (n, p) =>
-                Variable.unsecure(p, experiment.getVariableOutput(n))
-            } ++
-              gamaOutputs.map {
+          val returnContext =
+            Context(
+              gamaVariableOutputs.map {
                 case (n, p) =>
-                  Variable.unsecure(p, experiment.getOutput(n))
-              }
-          )
+                  Variable.unsecure(p, experiment.getVariableOutput(n))
+              } ++
+                gamaOutputs.map {
+                  case (n, p) =>
+                    Variable.unsecure(p, experiment.getOutput(n))
+                }
+            )
 
-        fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, "")
-      } finally Try(experiment.dispose)
-    }catch {
+          fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, "")
+        }
+      }
+
+    } catch {
       case t: Throwable ⇒
         throw new UserBadDataError(
           s"""Gama raised the exception:
