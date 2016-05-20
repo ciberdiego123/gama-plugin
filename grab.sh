@@ -1,12 +1,17 @@
 
 mkdir -p target
 cd target
-rm latest.tar.gz
-wget https://github.com/gama-platform/gama/archive/latest.tar.gz
-tar -xvzf latest.tar.gz
+rm master.zip
+rm -rf gama-master
+wget https://github.com/gama-platform/gama/archive/master.zip
+tar -xvzf master.zip
 cd -
 
-GAMA=target/gama-latest/
+cd taget/gama-master/
+./build.sh
+cd -
+
+GAMA=target/gama-master/msi.gama.application/target/products/msi.gama.application.product/linux/gtk/x86_64/plugins/
 LOCAL=.
 
 for f in `cat bundles.list`
