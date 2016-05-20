@@ -7,7 +7,7 @@ wget https://github.com/gama-platform/gama/archive/master.zip
 tar -xvzf master.zip
 cd -
 
-cd taget/gama-master/
+cd target/gama-master/
 ./build.sh
 cd -
 
