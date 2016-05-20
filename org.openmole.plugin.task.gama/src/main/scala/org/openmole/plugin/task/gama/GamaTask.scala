@@ -97,36 +97,25 @@ abstract class GamaTask(
     val seed: Option[Prototype[Long]]
 ) extends ExternalTask {
 
-  override protected def process(context: Context)(implicit rng: RandomProvider): Context = withWorkDir { tmpDir ⇒
+  override protected def process(context: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = withWorkDir(executionContext) { workDir ⇒
     try {
-
       GamaTask.preload
 
-      prepareInputFiles(context, tmpDir.getCanonicalFile, "")
+      prepareInputFiles(context, relativeResolver(workDir))
 
-      GamaTask.withDisposable(MoleSimulationLoader.loadModel(tmpDir / gaml)) { model =>
+      GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
         GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
           for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
           experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextLong))
 
-          for {
-            s <- 0 until steps
-          } experiment.step
+          for { s <- 0 until steps } experiment.step
 
-          val returnContext =
-            Context(
-              gamaVariableOutputs.map {
-                case (n, p) =>
-                  Variable.unsecure(p, experiment.getVariableOutput(n))
-              } ++
-                gamaOutputs.map {
-                  case (n, p) =>
-                    Variable.unsecure(p, experiment.getOutput(n))
-                }
-            )
+          def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
+          def gamaVOutputVariables = gamaVariableOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getVariableOutput(n)) }
+          def returnContext = Context(gamaVOutputVariables ++ gamaOutputVariables)
 
-          fetchOutputFiles(returnContext, tmpDir.getCanonicalFile, "")
+          fetchOutputFiles(returnContext, relativeResolver(workDir))
         }
       }
 
