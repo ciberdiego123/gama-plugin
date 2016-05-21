@@ -31,7 +31,7 @@ package object gama {
     def +=(prototype: Prototype[_]*) = (_: GamaTask.Builder).addGamaOutput(prototype: _*)
   }
 
-  lazy val gamaVariableOutput = new {
+  lazy val gamaVariableOutputs = new {
     def +=(name: String, prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(name, prototype)
     def +=(prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(prototype)
   }
