@@ -2,12 +2,6 @@
 GAMA=target/gama-master/msi.gama.application/target/products/msi.gama.application.product/linux/gtk/x86_64/plugins/
 LOCAL=.
 
-for f in `cat bundles.list`
-do
-  ls -d $GAMA/$f
-  if [[ $? != 0 ]]; then exit 1; fi
-done
-
 BUNDLES=$LOCAL/bundles/
 LIBS=$LOCAL/lib
 
@@ -16,10 +10,16 @@ rm -rf "$BUNDLES" "$LIBS"
 mkdir -p $BUNDLES
 mkdir -p $LIBS
 
-for f in `cat bundles.list`
+for f in `ls $GAMA`
 do
   cp -r $GAMA/$f $BUNDLES/
 done
+
+for f in `cat bundles.blacklist`
+do
+#  rm $BUNDLES/$f 
+done
+
 
 cd $BUNDLES
 
@@ -30,8 +30,8 @@ do
   NAME=`ls -d $d`
   if [[ $? != 0 ]]; then exit 1; fi
   jar -cvfM $NAME.jar -C $NAME .
-  mv $NAME/* ../$LIBS
-  rm -rf "$NAME"
+  cp $NAME/* ../$LIBS
+  rm "$NAME.jar"
 done
 
 cd -
@@ -41,6 +41,8 @@ for f in `ls ../bundles`
 do
   ln -s ../bundles/$f
 done
+
+rm *.so
 
 cd -
 
