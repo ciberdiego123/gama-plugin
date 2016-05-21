@@ -11,14 +11,7 @@ cd target/gama-master/
 ./build.sh
 cd -
 
-GAMA=`find find . | grep linux/gtk/x86_64/plugins/`
-
-if [ -z $GAMA ]
-then
-  echo "plugins have not been found"
-  exit 1
-fi
-
+GAMA=target/gama-master/msi.gama.application/target/products/msi.gama.application.product/linux/gtk/x86_64/plugins/
 LOCAL=.
 
 for f in `cat bundles.list`
