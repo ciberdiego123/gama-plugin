@@ -32,7 +32,6 @@ org.eclipse.xtext.util_*
 org.eclipse.xtext.xbase.lib_*
 org.eclipse.xtext.ide_*
 org.hamcrest.core_*
-idees.gama.mapcomparison_*
 simtools.gaml.extensions.traffic_*
 ummisco.gaml.extensions.maths_*
 irit.gaml.extensions.database_*
