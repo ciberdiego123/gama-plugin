@@ -84,9 +84,7 @@ object GamaTask {
     try f(disposable)
     finally Try(disposable.dispose())
   }
-
-  def toExcep
-
+  
 }
 
 abstract class GamaTask(
@@ -102,7 +100,7 @@ abstract class GamaTask(
   override protected def process(context: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = withWorkDir(executionContext) { workDir ⇒
     try {
       GamaTask.preload
-      
+
       prepareInputFiles(context, relativeResolver(workDir))
 
       GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
