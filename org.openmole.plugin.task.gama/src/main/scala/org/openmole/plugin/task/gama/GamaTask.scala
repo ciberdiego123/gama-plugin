@@ -85,6 +85,8 @@ object GamaTask {
     finally Try(disposable.dispose())
   }
 
+  def toExcep
+
 }
 
 abstract class GamaTask(
@@ -100,7 +102,7 @@ abstract class GamaTask(
   override protected def process(context: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = withWorkDir(executionContext) { workDir ⇒
     try {
       GamaTask.preload
-
+      
       prepareInputFiles(context, relativeResolver(workDir))
 
       GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
@@ -109,7 +111,12 @@ abstract class GamaTask(
           for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
           experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextLong))
 
-          for { s <- 0 until steps } experiment.step
+          for { s <- 0 until steps }
+            try experiment.step
+            catch {
+              case t: Throwable ⇒
+               throw new UserBadDataError(t, s"Gama raised an exception while running the simulation (after $s steps)")
+            }
 
           def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
           def gamaVOutputVariables = gamaVariableOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getVariableOutput(n)) }
@@ -120,11 +127,8 @@ abstract class GamaTask(
       }
 
     } catch {
-      case t: Throwable ⇒
-        throw new UserBadDataError(
-          s"""Gama raised the exception:
-          |""".stripMargin + t.stackStringWithMargin
-        )
+      case u: UserBadDataError => throw u
+      case t: Throwable ⇒ throw new UserBadDataError(t, "Gama raised an exception")
     }
   }
 
