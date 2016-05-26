@@ -8,6 +8,7 @@ import org.openmole.core.workflow.task._
 import org.openmole.core.workflow.dsl._
 import org.openmole.core.exception._
 import org.openmole.plugin.task.external._
+import org.openmole.core.tools.io.Prettifier._
 import monocle.Lens
 import monocle.macros.Lenses
 import org.openmole.core.workflow.builder.{ InputOutputBuilder, InputOutputConfig }
@@ -93,7 +94,10 @@ object GamaTask {
             try experiment.step
             catch {
               case t: Throwable ⇒
-                throw new UserBadDataError(t, s"Gama raised an exception while running the simulation (after $s steps)")
+                throw new UserBadDataError(
+                  s"""s"Gama raised an exception while running the simulation (after $s steps)":
+                      |""".stripMargin + t.stackStringWithMargin
+                )
             }
 
           def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
@@ -106,7 +110,12 @@ object GamaTask {
 
     } catch {
       case u: UserBadDataError => throw u
-      case t: Throwable ⇒ throw new UserBadDataError(t, "Gama raised an exception")
+      case t: Throwable ⇒
+        // Don't chain exceptions to avoid unserialisation issue
+        throw new UserBadDataError(
+          s"""Gama raised the exception:
+              |""".stripMargin + t.stackStringWithMargin
+        )
     }
   }
 
