@@ -17,7 +17,8 @@ object GamaBuild extends Build {
     name := "openmole-gama",
     organization := "org.openmole",
     version := "6.0-SNAPSHOT",
-    scalaVersion := "2.11.8"
+    scalaVersion := "2.11.8",
+    addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full)
   )
 
   lazy val core = Project(

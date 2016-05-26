@@ -17,27 +17,35 @@
 
 package org.openmole.plugin.task
 
+import org.openmole.core.workflow.builder._
+import org.openmole.core.workflow.dsl._
 import org.openmole.core.workflow.data._
+import org.openmole.plugin.task.gama.GamaTask.GAMABuilder
 
 package object gama {
 
   lazy val gamaInputs = new {
-    def +=(p: Prototype[_]*) = (_: GamaTask.Builder).addGamaInput(p: _*)
-    def +=(p: Prototype[_], name: String) = (_: GamaTask.Builder).addGamaInput(p, name)
+    def +=[T: GAMABuilder: InputOutputBuilder](p: Prototype[_]): T => T = this.+=[T](p, p.name)
+    def +=[T: GAMABuilder: InputOutputBuilder](p: Prototype[_], name: String): T => T =
+      (implicitly[GAMABuilder[T]].gamaInputs add p -> name) andThen
+        (inputs += p)
   }
 
   lazy val gamaOutputs = new {
-    def +=(name: String, prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaOutput(name, prototype)
-    def +=(prototype: Prototype[_]*) = (_: GamaTask.Builder).addGamaOutput(prototype: _*)
+    def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Prototype[_]): T => T =
+      (implicitly[GAMABuilder[T]].gamaOutputs add name -> prototype) andThen (outputs += prototype)
+    def +=[T: GAMABuilder: InputOutputBuilder](prototype: Prototype[_]): T => T = this.+=[T](prototype.name, prototype)
   }
 
   lazy val gamaVariableOutputs = new {
-    def +=(name: String, prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(name, prototype)
-    def +=(prototype: Prototype[_]) = (_: GamaTask.Builder).addGamaVariableOutput(prototype)
+    def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Prototype[_]): T => T =
+      (implicitly[GAMABuilder[T]].gamaVariableOutputs add name -> prototype) andThen
+        (outputs += prototype)
+    def +=[T: GAMABuilder: InputOutputBuilder](p: Prototype[_]): T => T = this.+=[T](p.name, p)
   }
 
   lazy val gamaSeed = new {
-    def :=(seed: Prototype[Long]) = (_: GamaTask.Builder).setSeed(seed)
+    def :=[T: GAMABuilder](seed: Prototype[Long]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
   }
 
 }
