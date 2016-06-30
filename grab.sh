@@ -1,5 +1,5 @@
 
-GAMA=target/gama-master/msi.gama.application/target/products/msi.gama.application.product/linux/gtk/x86_64/plugins/
+GAMA=target/gama-master/ummisco.gama.product/target/products/ummisco.gama.application.product/linux/gtk/x86_64/plugins
 LOCAL=.
 
 for f in `cat bundles.list`
