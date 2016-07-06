@@ -49,7 +49,8 @@ object GamaTask {
       experimentName,
       steps
     ) set (
-      workspace.listFiles().map(resources += _))
+      workspace.listFiles().map(resources += _)
+    )
 
   lazy val preload = {
     MoleSimulationLoader.loadGAMA()
