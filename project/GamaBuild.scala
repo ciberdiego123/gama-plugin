@@ -5,6 +5,7 @@ import sbt.dependency.manager._
 import sbt.osgi.manager._
 import sbt.dependency.manager.Keys._
 import com.typesafe.sbt.osgi.{OsgiKeys, SbtOsgi}
+import sbt.IO._
 
 object GamaBuild extends Build {
 
@@ -23,17 +24,20 @@ object GamaBuild extends Build {
     organization := "org.openmole",
     name := "openmole-gama"
   )
-
+  val deleteTaskGama = taskKey[Unit]("delete task gama jar")
+  val deleteTaskOsgi = taskKey[Unit]("delete tasg osgi jar")
   val generateTask = taskKey[Unit]("compile all gama bundle")
 
     lazy val core = Project(
       id = "openmole-gama",
-      base = file("./org.openmole.plugin.task.gama/")) enablePlugins(SbtOsgi) settings(osgiSettings ++ DependencyManager ++ OSGiManagerWithDebug(): _*) settings( //enablePlugins(SbtOsgi) settings(gamaSettings ++ DependencyManager ++ OSGiManagerWithDebug(): _*) settings(
+      base = file("./org.openmole.plugin.task.gama/")) enablePlugins(SbtOsgi) settings(osgiSettings ++ DependencyManager ++ OSGiManagerWithDebug(): _*) settings(
       name := "task.gama",
       scalaVersion := "2.11.8",
       version := "6.0-SNAPSHOT",
       addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
-      DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m => m.configurations == Some("osgi")}),
+      DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m =>
+        println(m.name, " > "  , m.configurations == Some("osgi") &&  m.organization != "org.eclipse.osgi")
+        (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
       DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "../bundles"),
       resolvers in OSGiConf += typeP2("Eclipse Mars p2 update site" at "http://download.eclipse.org/releases/mars/"),
       resolvers in OSGiConf += typeP2("GAMA update site" at "http://vps226121.ovh.net/updates/"),
@@ -45,22 +49,23 @@ object GamaBuild extends Build {
       libraryDependencies += "org.openmole" %% "org-openmole-plugin-task-external" % openmoleVersion % "provided",
       artifactPath in (Compile, packageBin) ~= { defaultPath =>
         file("bundles") / defaultPath.getName },
-      onLoad in Global :=  {
+        cleanFiles ++= (((baseDirectory.value / "../bundles" ) * "*.jar") get),
+        onLoad in Global  :=  {
         ((s: State) => { "osgiResolveRemote" :: s }) compose (onLoad in Global).value },
-//        bundleTask in Compile := {
-//          val result  = SbtOsgi.autoImport.OsgiKeys.bundle.value
-//          result
-//        },
+      deleteTaskGama := delete(((baseDirectory.value / "../bundles" ) * "task-gama*") get),
+      deleteTaskOsgi := delete(((baseDirectory.value / "../bundles" ) * "org.eclipse.osgi*") get),
         generateTask in Compile :=  Def.sequential(
-          //https://github.com/sbt-android-mill/sbt-dependency-manager/blob/master/src/main/scala/sbt/dependency/manager/Keys.scala
+          deleteTaskGama,
           dependencyTaskFetch,
           compile in Compile,
-          OsgiKeys.bundle
+          OsgiKeys.bundle,
+          deleteTaskOsgi
         ).value
+
 
   )
 
-  override def rootProject = Some(core)
+   override def rootProject = Some(core)
 
 
 
