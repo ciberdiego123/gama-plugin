@@ -40,7 +40,7 @@ object GamaBuild extends Build {
         (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
       DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "../bundles"),
       resolvers in OSGiConf += typeP2("Eclipse Mars p2 update site" at "http://download.eclipse.org/releases/mars/"),
-      resolvers in OSGiConf += typeP2("GAMA update site" at "http://vps226121.ovh.net/updates/"),
+      resolvers in OSGiConf += typeP2("GAMA update site" at "http://gama.unthinkingdepths.fr/"),
       libraryDependencies in OSGiConf += typeP2(OSGi.ECLIPSE_PLUGIN % "msi.gama.headless" % OSGi.ANY_VERSION withSources),
       //libraryDependencies in OSGiConf += typeP2(OSGi.ECLIPSE_PLUGIN % "org.eclipse.ui" % OSGi.ANY_VERSION withSources),
       libraryDependencies += "biz.aQute" % "bndlib" % "2.0.0.20130123-133441",
