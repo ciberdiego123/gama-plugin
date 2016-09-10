@@ -11,7 +11,7 @@ object GamaBuild extends Build {
 
 //  resolvers in OSGiConf += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-  lazy val openmoleVersion = "6.0-SNAPSHOT"
+  lazy val openmoleVersion = "7.0-SNAPSHOT"
 
   val osgiSettings = Seq(
     OsgiKeys.importPackage := Seq("*"),
