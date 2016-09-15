@@ -47,6 +47,6 @@ This plugin works with the developpement version of OpenMOLE 4.0.
         nb_preys_init in (0 to 200 by 10)
       )
     
-    val ex = exploration -< (gama hook ToStringHook()) start
+    exploration -< (gama hook ToStringHook())
     ```
 
