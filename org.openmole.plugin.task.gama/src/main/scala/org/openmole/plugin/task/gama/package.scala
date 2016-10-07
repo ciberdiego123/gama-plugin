@@ -45,7 +45,7 @@ package object gama {
   }
 
   lazy val gamaSeed = new {
-    def :=[T: GAMABuilder](seed: Prototype[Long]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
+    def :=[T: GAMABuilder](seed: Prototype[Double]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
   }
 
 }
