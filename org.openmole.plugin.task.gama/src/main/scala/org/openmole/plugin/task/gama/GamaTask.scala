@@ -3,10 +3,10 @@ package org.openmole.plugin.task.gama
 import java.io.File
 
 import msi.gama.headless.openmole.MoleSimulationLoader
-import org.openmole.core.workflow.data._
+import org.openmole.core.context._
 import org.openmole.core.workflow.task._
 import org.openmole.core.workflow.dsl._
-
+import org.openmole.tool.random._
 import org.openmole.core.exception._
 import org.openmole.plugin.task.external._
 import org.openmole.core.tools.io.Prettifier._
@@ -20,10 +20,10 @@ import scala.util.Try
 object GamaTask {
 
   trait GAMABuilder[T] {
-    def gamaInputs: Lens[T, Vector[(Prototype[_], String)]]
-    def gamaOutputs: Lens[T, Vector[(String, Prototype[_])]]
-    def gamaVariableOutputs: Lens[T, Vector[(String, Prototype[_])]]
-    def seed: Lens[T, Option[Prototype[Double]]]
+    def gamaInputs: Lens[T, Vector[(Val[_], String)]]
+    def gamaOutputs: Lens[T, Vector[(String, Val[_])]]
+    def gamaVariableOutputs: Lens[T, Vector[(String, Val[_])]]
+    def seed: Lens[T, Option[Val[Double]]]
   }
 
   implicit def isIO: InputOutputBuilder[GamaTask] = InputOutputBuilder(GamaTask._config)
@@ -68,10 +68,10 @@ object GamaTask {
     gaml: String,
     experimentName: String,
     steps: Int,
-    gamaInputs: Vector[(Prototype[_], String)] = Vector.empty,
-    gamaOutputs: Vector[(String, Prototype[_])] = Vector.empty,
-    gamaVariableOutputs: Vector[(String, Prototype[_])] = Vector.empty,
-    seed: Option[Prototype[Double]] = None,
+    gamaInputs: Vector[(Val[_], String)] = Vector.empty,
+    gamaOutputs: Vector[(String, Val[_])] = Vector.empty,
+    gamaVariableOutputs: Vector[(String, Val[_])] = Vector.empty,
+    seed: Option[Val[Double]] = None,
     _config: InputOutputConfig = InputOutputConfig(),
     external: External = External()
 ) extends Task {
@@ -83,7 +83,7 @@ object GamaTask {
     try {
       GamaTask.preload
 
-      external.prepareInputFiles(context, external.relativeResolver(workDir))
+      val preparedContext = external.prepareInputFiles(context, external.relativeResolver(workDir))
 
       GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
         GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
@@ -103,9 +103,8 @@ object GamaTask {
 
           def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
           def gamaVOutputVariables = gamaVariableOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getVariableOutput(n)) }
-          def returnContext = Context(gamaVOutputVariables ++ gamaOutputVariables)
 
-          external.fetchOutputFiles(returnContext, external.relativeResolver(workDir))
+          external.fetchOutputFiles(preparedContext, external.relativeResolver(workDir)) ++ gamaVOutputVariables ++ gamaOutputVariables
         }
       }
 
