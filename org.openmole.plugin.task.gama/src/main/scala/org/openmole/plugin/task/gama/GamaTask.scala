@@ -3,10 +3,10 @@ package org.openmole.plugin.task.gama
 import java.io.File
 
 import msi.gama.headless.openmole.MoleSimulationLoader
-import org.openmole.core.context._
+import org.openmole.core.workflow.data._
 import org.openmole.core.workflow.task._
 import org.openmole.core.workflow.dsl._
-import org.openmole.tool.random._
+import org.openmole.core.tools.service._
 import org.openmole.core.exception._
 import org.openmole.plugin.task.external._
 import org.openmole.core.tools.io.Prettifier._

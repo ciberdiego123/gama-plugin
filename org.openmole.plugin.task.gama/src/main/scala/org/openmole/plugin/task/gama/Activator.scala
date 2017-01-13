@@ -17,6 +17,6 @@
 
 package org.openmole.plugin.task.gama
 
-import org.openmole.core.pluginmanager._
+import org.openmole.core.workflow.tools.PluginInfoActivator
 
 class Activator extends PluginInfoActivator

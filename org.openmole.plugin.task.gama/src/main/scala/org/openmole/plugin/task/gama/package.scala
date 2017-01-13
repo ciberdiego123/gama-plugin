@@ -19,7 +19,7 @@ package org.openmole.plugin.task
 
 import org.openmole.core.workflow.builder._
 import org.openmole.core.workflow.dsl._
-import org.openmole.core.context._
+import org.openmole.core.workflow.data._
 import org.openmole.plugin.task.gama.GamaTask.GAMABuilder
 
 package object gama {
