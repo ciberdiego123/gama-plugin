@@ -1,5 +1,5 @@
 <center>
-<img src="https://i.imgur.com/UruLe2H.png" alt="Drawing" width="200px"/>
+<img src="https://i.imgur.com/UruLe2H.png" alt="Drawing" width="100px"/>
 <img src="https://i.imgur.com/DW2erAV.png" alt="Drawing" width="200px"/>
 </center>
 
