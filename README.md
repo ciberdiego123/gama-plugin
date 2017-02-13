@@ -1,6 +1,6 @@
 <center>
 <img src="https://i.imgur.com/UruLe2H.png" alt="Drawing" style="width: 200px;"/>
-<img src="https://i.imgur.com/DW2erAV.png" alt="Drawing" style="width:400px;"/>
+<img src="https://i.imgur.com/DW2erAV.png" alt="Drawing" style="width:200px;"/>
 </center>
 
 # Installation of Gama Plugin from scratch
@@ -148,25 +148,25 @@ When you compile the gama-plugin, you need to see some log like that, which indi
 
 ##  Execute a workflow launching a Gama model in OpenMOLE:
 
-    ```scala
-    // Declare the variable
-    val number_of_preys = Var[Int]
-    val nb_preys_init = Var[Int]
-    
-    // Gama task
-    // The third argument of the GamaTask is the gama experiment name
-    // and the fourth argument is the number of steps
-    val gama = 
-      GamaTask("/path/to/predatorPrey.gaml", "preyPred", 10) set (
-        gamaInputs += nb_preys_init,
-        gamaOutputs += number_of_preys 
-      )
-    
-    val exploration = 
-      ExplorationTask(
-        nb_preys_init in (0 to 200 by 10)
-      )
-    
-    exploration -< (gama hook ToStringHook())
-    ```
+```scala
+// Declare the variable
+val number_of_preys = Var[Int]
+val nb_preys_init = Var[Int]
+
+// Gama task
+// The third argument of the GamaTask is the gama experiment name
+// and the fourth argument is the number of steps
+val gama = 
+  GamaTask("/path/to/predatorPrey.gaml", "preyPred", 10) set (
+    gamaInputs += nb_preys_init,
+    gamaOutputs += number_of_preys 
+  )
+
+val exploration = 
+  ExplorationTask(
+    nb_preys_init in (0 to 200 by 10)
+  )
+
+exploration -< (gama hook ToStringHook())
+```
 
