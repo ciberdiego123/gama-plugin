@@ -122,9 +122,9 @@ Replace this two existing lines by :
 
 ```xml
 <ftp.url>sftp://gama.unthinkingdepths.fr</ftp.url>
-<ftp.toDir>/home/your-gama-directory/</ftp.toDir>
+<ftp.toDir>/home/reyman64/webapps/gamap2/</ftp.toDir>
 ```
-and of course, replace `your-game-directory` by your `gama` installation directory
+The `/home/reyman64/webapps/gamap2/` is the correct absolute dir to upload p2 site on the server.
 
 
 Then, run these commands to deploy : 
