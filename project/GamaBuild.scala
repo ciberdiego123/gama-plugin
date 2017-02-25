@@ -11,7 +11,7 @@ object GamaBuild extends Build {
 
 //  resolvers in OSGiConf += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-  lazy val openmoleVersion = "6.1"
+  lazy val openmoleVersion = "7.0-SNAPSHOT"
 
   val osgiSettings = Seq(
     OsgiKeys.importPackage := Seq("*"),
@@ -34,14 +34,15 @@ object GamaBuild extends Build {
       base = file("./org.openmole.plugin.task.gama/")) enablePlugins(SbtOsgi) settings(osgiSettings ++ DependencyManager ++ OSGiManagerWithDebug(): _*) settings(
       name := "task.gama",
       scalaVersion := "2.11.8",
-      version := "6.0-SNAPSHOT",
+      version := openmoleVersion,
       addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
       DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m =>
         println(m.name, " > "  , m.configurations == Some("osgi") &&  m.organization != "org.eclipse.osgi")
         (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
       DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "../bundles"),
       resolvers in OSGiConf += typeP2("Eclipse Mars p2 update site" at "http://download.eclipse.org/releases/mars/"),
-      resolvers in OSGiConf += typeP2("GAMA update site" at "http://gama.unthinkingdepths.fr/"),
+      resolvers in OSGiConf += typeP2("GAMA update site" at "http://localhost:8080/"),
+      //resolvers in OSGiConf += typeP2("GAMA update site" at "http://gama.unthinkingdepths.fr/"),
       libraryDependencies in OSGiConf += typeP2(OSGi.ECLIPSE_PLUGIN % "msi.gama.headless" % OSGi.ANY_VERSION withSources),
       //libraryDependencies in OSGiConf += typeP2(OSGi.ECLIPSE_PLUGIN % "org.eclipse.ui" % OSGi.ANY_VERSION withSources),
       libraryDependencies += "biz.aQute" % "bndlib" % "2.0.0.20130123-133441",

@@ -3,7 +3,7 @@ package org.openmole.plugin.task.gama
 import java.io.File
 
 import msi.gama.headless.openmole.MoleSimulationLoader
-import org.openmole.core.workflow.data._
+import org.openmole.core.context._
 import org.openmole.core.workflow.task._
 import org.openmole.core.workflow.dsl._
 import org.openmole.core.tools.service._
@@ -13,8 +13,8 @@ import org.openmole.core.tools.io.Prettifier._
 import monocle.Lens
 import monocle.macros.Lenses
 import org.openmole.core.workflow.builder.{ InputOutputBuilder, InputOutputConfig }
+import org.openmole.tool.random._
 
-import scala.collection.mutable.ListBuffer
 import scala.util.Try
 
 object GamaTask {
@@ -36,14 +36,14 @@ object GamaTask {
     override def gamaVariableOutputs = GamaTask.gamaVariableOutputs
   }
 
-  def apply(gaml: File, experimentName: String, steps: Int) =
+  def apply(gaml: File, experimentName: String, steps: Int)(implicit name: sourcecode.Name) =
     new GamaTask(
       gaml.getName,
       experimentName,
       steps
     ) set (resources += gaml)
 
-  def apply(workspace: File, model: String, experimentName: String, steps: Int) =
+  def apply(workspace: File, model: String, experimentName: String, steps: Int)(implicit name: sourcecode.Name) =
     new GamaTask(
       model,
       experimentName,
@@ -79,7 +79,7 @@ object GamaTask {
   def config =
     InputOutputConfig.inputs.modify(_ ++ seed)(_config)
 
-  override protected def process(context: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = external.withWorkDir(executionContext) { workDir ⇒
+  override protected def process(context: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = External.withWorkDir(executionContext) { workDir ⇒
     try {
       GamaTask.preload
 

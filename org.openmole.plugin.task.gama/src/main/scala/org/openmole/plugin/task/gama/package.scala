@@ -19,33 +19,37 @@ package org.openmole.plugin.task
 
 import org.openmole.core.workflow.builder._
 import org.openmole.core.workflow.dsl._
-import org.openmole.core.workflow.data._
+import org.openmole.core.context._
 import org.openmole.plugin.task.gama.GamaTask.GAMABuilder
 
-package object gama {
+package gama {
 
-  lazy val gamaInputs = new {
-    def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p, p.name)
-    def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_], name: String): T => T =
-      (implicitly[GAMABuilder[T]].gamaInputs add p -> name) andThen
-        (inputs += p)
-  }
+  trait GamaPackage {
+    lazy val gamaInputs = new {
+      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p, p.name)
+      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_], name: String): T => T =
+        (implicitly[GAMABuilder[T]].gamaInputs add p -> name) andThen
+          (inputs += p)
+    }
 
-  lazy val gamaOutputs = new {
-    def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Val[_]): T => T =
-      (implicitly[GAMABuilder[T]].gamaOutputs add name -> prototype) andThen (outputs += prototype)
-    def +=[T: GAMABuilder: InputOutputBuilder](prototype: Val[_]): T => T = this.+=[T](prototype.name, prototype)
-  }
+    lazy val gamaOutputs = new {
+      def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Val[_]): T => T =
+        (implicitly[GAMABuilder[T]].gamaOutputs add name -> prototype) andThen (outputs += prototype)
+      def +=[T: GAMABuilder: InputOutputBuilder](prototype: Val[_]): T => T = this.+=[T](prototype.name, prototype)
+    }
 
-  lazy val gamaVariableOutputs = new {
-    def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Val[_]): T => T =
-      (implicitly[GAMABuilder[T]].gamaVariableOutputs add name -> prototype) andThen
-        (outputs += prototype)
-    def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p.name, p)
-  }
+    lazy val gamaVariableOutputs = new {
+      def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Val[_]): T => T =
+        (implicitly[GAMABuilder[T]].gamaVariableOutputs add name -> prototype) andThen
+          (outputs += prototype)
+      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p.name, p)
+    }
 
-  lazy val gamaSeed = new {
-    def :=[T: GAMABuilder](seed: Val[Double]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
+    lazy val gamaSeed = new {
+      def :=[T: GAMABuilder](seed: Val[Double]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
+    }
   }
 
 }
+
+package object gama extends GamaPackage
