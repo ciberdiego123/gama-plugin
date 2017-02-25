@@ -23,7 +23,7 @@ object GamaTask {
     def gamaInputs: Lens[T, Vector[(Val[_], String)]]
     def gamaOutputs: Lens[T, Vector[(String, Val[_])]]
     def gamaVariableOutputs: Lens[T, Vector[(String, Val[_])]]
-    def seed: Lens[T, Option[Val[Double]]]
+    def seed: Lens[T, Option[Val[Int]]]
   }
 
   implicit def isIO: InputOutputBuilder[GamaTask] = InputOutputBuilder(GamaTask._config)
@@ -71,7 +71,7 @@ object GamaTask {
     gamaInputs: Vector[(Val[_], String)] = Vector.empty,
     gamaOutputs: Vector[(String, Val[_])] = Vector.empty,
     gamaVariableOutputs: Vector[(String, Val[_])] = Vector.empty,
-    seed: Option[Val[Double]] = None,
+    seed: Option[Val[Int]] = None,
     _config: InputOutputConfig = InputOutputConfig(),
     external: External = External()
 ) extends Task {
@@ -89,7 +89,7 @@ object GamaTask {
         GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
           for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
-          experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextDouble))
+          experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
 
           for { s <- 0 until steps }
             try experiment.step

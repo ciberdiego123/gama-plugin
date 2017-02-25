@@ -28,25 +28,23 @@ package gama {
     lazy val gamaInputs = new {
       def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p, p.name)
       def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_], name: String): T => T =
-        (implicitly[GAMABuilder[T]].gamaInputs add p -> name) andThen
-          (inputs += p)
+        (implicitly[GAMABuilder[T]].gamaInputs add p -> name) andThen (inputs += p)
     }
 
     lazy val gamaOutputs = new {
-      def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Val[_]): T => T =
-        (implicitly[GAMABuilder[T]].gamaOutputs add name -> prototype) andThen (outputs += prototype)
-      def +=[T: GAMABuilder: InputOutputBuilder](prototype: Val[_]): T => T = this.+=[T](prototype.name, prototype)
+      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p.name, p)
+      def +=[T: GAMABuilder: InputOutputBuilder](name: String, p: Val[_]): T => T =
+        (implicitly[GAMABuilder[T]].gamaOutputs add name -> p) andThen (outputs += p)
     }
 
     lazy val gamaVariableOutputs = new {
-      def +=[T: GAMABuilder: InputOutputBuilder](name: String, prototype: Val[_]): T => T =
-        (implicitly[GAMABuilder[T]].gamaVariableOutputs add name -> prototype) andThen
-          (outputs += prototype)
       def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p.name, p)
+      def +=[T: GAMABuilder: InputOutputBuilder](name: String, p: Val[_]): T => T =
+        (implicitly[GAMABuilder[T]].gamaVariableOutputs add name -> p) andThen (outputs += p)
     }
 
     lazy val gamaSeed = new {
-      def :=[T: GAMABuilder](seed: Val[Double]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
+      def :=[T: GAMABuilder](seed: Val[Int]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
     }
   }
 

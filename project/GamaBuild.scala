@@ -36,9 +36,7 @@ object GamaBuild extends Build {
       scalaVersion := "2.11.8",
       version := openmoleVersion,
       addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
-      DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m =>
-        println(m.name, " > "  , m.configurations == Some("osgi") &&  m.organization != "org.eclipse.osgi")
-        (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
+      DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m => (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
       DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "../bundles"),
       resolvers in OSGiConf += typeP2("Eclipse Mars p2 update site" at "http://download.eclipse.org/releases/mars/"),
       resolvers in OSGiConf += typeP2("GAMA update site" at "http://localhost:8080/"),
