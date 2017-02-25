@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+
+  ssh:
+    build: ./ssh
+    ports:
+      - "2222:22"
+    volumes:
+      - ./data/repo:/repo/
+  http:
+    image: httpd
+    ports:
+      - "8080:80"
+    volumes:
+      - ./data/repo:/usr/local/apache2/htdocs/
