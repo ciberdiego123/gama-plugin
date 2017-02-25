@@ -84,9 +84,9 @@ __Warning :__ Request and download of __jar__ from P2 repository could be very v
 
 You could list all OpenMole option typing `openmole -h` command in your terminal.
 
-Into `gama-plugin/` root folder, run OpenMole with plugin `-p` (load all the jars from plugin) and `--remote` (to enable remote connection to the web interface) option : 
+Into `gama-plugin/` root folder, run OpenMole with plugin `-p` (load all the jars from plugin): 
 
-`openmole -p ./bundles/ -remote`
+`openmole -p ./bundles/
 
 If everything is ok :+1:, you could see something like that when OpenMole start : 
 
