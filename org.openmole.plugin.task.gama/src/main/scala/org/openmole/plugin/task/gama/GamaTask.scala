@@ -41,8 +41,8 @@ object GamaTask {
   def apply(
     gaml: File,
     experimentName: FromContext[String],
-    stopCondition: OptionalArgument[String] = None,
-    maxSteps: OptionalArgument[Int] = None,
+    stopCondition: OptionalArgument[FromContext[String]] = None,
+    maxStep: OptionalArgument[FromContext[Int]] = None,
     embedWorkspace: Boolean = false
   )(implicit name: sourcecode.Name) = {
     val gamaTask =
@@ -50,7 +50,7 @@ object GamaTask {
         gaml.getName,
         experimentName,
         stopCondition = stopCondition,
-        maxSteps = maxSteps,
+        maxStep = maxStep,
         gamaInputs = Vector.empty,
         gamaOutputs = Vector.empty,
         gamaVariableOutputs = Vector.empty,
@@ -78,15 +78,24 @@ object GamaTask {
 @Lenses case class GamaTask(
     gaml: String,
     experimentName: FromContext[String],
-    stopCondition: OptionalArgument[String],
-    maxSteps: OptionalArgument[Int],
+    stopCondition: OptionalArgument[FromContext[String]],
+    maxStep: OptionalArgument[FromContext[Int]],
     gamaInputs: Vector[(Val[_], String)],
     gamaOutputs: Vector[(String, Val[_])],
     gamaVariableOutputs: Vector[(String, Val[_])],
     seed: Option[Val[Int]],
     _config: InputOutputConfig,
     external: External
-) extends Task {
+) extends Task with ValidateTask {
+
+  override def validate: Seq[Throwable] = {
+    def stopError = if (!stopCondition.isDefined && !maxStep.isDefined) List(new UserBadDataError("At least one of the parameters stopCondition or maxStep should be defined")) else List.empty
+
+    experimentName.validate(inputs.toList) ++
+      stopCondition.toList.flatMap(_.validate(inputs.toList)) ++
+      maxStep.toList.flatMap(_.validate(inputs.toList)) ++
+      stopError
+  }
 
   def config =
     InputOutputConfig.inputs.modify(_ ++ seed)(_config)
@@ -103,7 +112,10 @@ object GamaTask {
           for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
           experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
 
-          try experiment.play(stopCondition.getOrElse(null), maxSteps.getOrElse(-1))
+          try experiment.play(
+            stopCondition.map(_.from(context)).getOrElse(null),
+            maxStep.map(_.from(context)).getOrElse(-1)
+          )
           catch {
             case t: Throwable ⇒
               throw new UserBadDataError(
@@ -122,7 +134,7 @@ object GamaTask {
     } catch {
       case u: UserBadDataError => throw u
       case t: Throwable ⇒
-        // Don't chain exceptions to avoid unserialisation issue
+        // Don't chain exceptions to avoid deserialisation issue
         throw new UserBadDataError(
           s"""Gama raised the exception:
               |""".stripMargin + t.stackStringWithMargin
