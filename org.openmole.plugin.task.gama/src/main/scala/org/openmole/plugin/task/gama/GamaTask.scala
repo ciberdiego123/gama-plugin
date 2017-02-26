@@ -2,7 +2,6 @@ package org.openmole.plugin.task.gama
 
 import java.io.File
 
-import msi.gama.headless.openmole.MoleSimulationLoader
 import org.openmole.core.context._
 import org.openmole.core.workflow.task._
 import org.openmole.core.workflow.dsl._
@@ -12,7 +11,10 @@ import org.openmole.plugin.task.external._
 import org.openmole.core.tools.io.Prettifier._
 import monocle.Lens
 import monocle.macros.Lenses
+import msi.gama.headless.openmole.MoleSimulationLoader
+import org.openmole.core.expansion.FromContext
 import org.openmole.core.workflow.builder.{ InputOutputBuilder, InputOutputConfig }
+import org.openmole.core.workflow.validation.ValidateTask
 import org.openmole.tool.random._
 
 import scala.util.Try
@@ -36,21 +38,30 @@ object GamaTask {
     override def gamaVariableOutputs = GamaTask.gamaVariableOutputs
   }
 
-  def apply(gaml: File, experimentName: String, steps: Int)(implicit name: sourcecode.Name) =
-    new GamaTask(
-      gaml.getName,
-      experimentName,
-      steps
-    ) set (resources += gaml)
+  def apply(
+    gaml: File,
+    experimentName: FromContext[String],
+    stopCondition: OptionalArgument[String] = None,
+    maxSteps: OptionalArgument[Int] = None,
+    embedWorkspace: Boolean = false
+  )(implicit name: sourcecode.Name) = {
+    val gamaTask =
+      new GamaTask(
+        gaml.getName,
+        experimentName,
+        stopCondition = stopCondition,
+        maxSteps = maxSteps,
+        gamaInputs = Vector.empty,
+        gamaOutputs = Vector.empty,
+        gamaVariableOutputs = Vector.empty,
+        seed = None,
+        _config = InputOutputConfig(),
+        external = External()
+      )
 
-  def apply(workspace: File, model: String, experimentName: String, steps: Int)(implicit name: sourcecode.Name) =
-    new GamaTask(
-      model,
-      experimentName,
-      steps
-    ) set (
-      workspace.listFiles().map(resources += _)
-    )
+    if (!embedWorkspace) gamaTask set (resources += gaml)
+    else gamaTask set (gaml.getParentFileSafe.listFiles().map(resources += _))
+  }
 
   lazy val preload = {
     MoleSimulationLoader.loadGAMA()
@@ -66,14 +77,15 @@ object GamaTask {
 
 @Lenses case class GamaTask(
     gaml: String,
-    experimentName: String,
-    steps: Int,
-    gamaInputs: Vector[(Val[_], String)] = Vector.empty,
-    gamaOutputs: Vector[(String, Val[_])] = Vector.empty,
-    gamaVariableOutputs: Vector[(String, Val[_])] = Vector.empty,
-    seed: Option[Val[Int]] = None,
-    _config: InputOutputConfig = InputOutputConfig(),
-    external: External = External()
+    experimentName: FromContext[String],
+    stopCondition: OptionalArgument[String],
+    maxSteps: OptionalArgument[Int],
+    gamaInputs: Vector[(Val[_], String)],
+    gamaOutputs: Vector[(String, Val[_])],
+    gamaVariableOutputs: Vector[(String, Val[_])],
+    seed: Option[Val[Int]],
+    _config: InputOutputConfig,
+    external: External
 ) extends Task {
 
   def config =
@@ -89,17 +101,16 @@ object GamaTask {
         GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
           for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
-          experiment.setup(experimentName, seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
+          experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
 
-          for { s <- 0 until steps }
-            try experiment.step
-            catch {
-              case t: Throwable ⇒
-                throw new UserBadDataError(
-                  s"""s"Gama raised an exception while running the simulation (after $s steps)":
-                      |""".stripMargin + t.stackStringWithMargin
-                )
-            }
+          try experiment.play(stopCondition.getOrElse(null), maxSteps.getOrElse(-1))
+          catch {
+            case t: Throwable ⇒
+              throw new UserBadDataError(
+                s"""Gama raised an exception while running the simulation:
+                    |""".stripMargin + t.stackStringWithMargin
+              )
+          }
 
           def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
           def gamaVOutputVariables = gamaVariableOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getVariableOutput(n)) }
