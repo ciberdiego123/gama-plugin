@@ -41,11 +41,17 @@ object GamaTask {
     experimentName: FromContext[String],
     stopCondition: OptionalArgument[FromContext[String]] = None,
     maxStep: OptionalArgument[FromContext[Int]] = None,
-    embedWorkspace: Boolean = false
+    workspace: OptionalArgument[File] = None
   )(implicit name: sourcecode.Name) = {
+    val gamlName =
+      workspace.option match {
+        case None => gaml.getName
+        case Some(ws) => gaml.getPath
+      }
+
     val gamaTask =
       new GamaTask(
-        gaml.getName,
+        gamlName,
         experimentName,
         stopCondition = stopCondition,
         maxStep = maxStep,
@@ -56,8 +62,10 @@ object GamaTask {
         external = External()
       )
 
-    if (!embedWorkspace) gamaTask set (resources += gaml)
-    else gamaTask set (gaml.getParentFileSafe.listFiles().map(resources += _))
+    workspace.option match {
+      case None => gamaTask set (resources += gaml)
+      case Some(w) => gamaTask set (w.listFiles().map(resources += _))
+    }
   }
 
   lazy val preload = {
@@ -85,20 +93,24 @@ object GamaTask {
 ) extends Task with ValidateTask {
 
   override def validate: Seq[Throwable] = {
+    val allInputs = External.PWD :: inputs.toList
     def stopError = if (!stopCondition.isDefined && !maxStep.isDefined) List(new UserBadDataError("At least one of the parameters stopCondition or maxStep should be defined")) else List.empty
 
-    experimentName.validate(inputs.toList) ++
-      stopCondition.toList.flatMap(_.validate(inputs.toList)) ++
-      maxStep.toList.flatMap(_.validate(inputs.toList)) ++
-      stopError
+    experimentName.validate(allInputs) ++
+      stopCondition.toList.flatMap(_.validate(allInputs)) ++
+      maxStep.toList.flatMap(_.validate(allInputs)) ++
+      stopError ++
+      External.validate(external, allInputs)
   }
 
   def config =
     InputOutputConfig.inputs.modify(_ ++ seed)(_config)
 
-  override protected def process(context: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = External.withWorkDir(executionContext) { workDir ⇒
+  override protected def process(ctx: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = External.withWorkDir(executionContext) { workDir ⇒
     try {
       GamaTask.preload
+
+      val context = ctx + (External.PWD -> workDir.getAbsolutePath)
 
       val preparedContext = external.prepareInputFiles(context, external.relativeResolver(workDir))
 
