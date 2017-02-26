@@ -37,12 +37,6 @@ package gama {
         (implicitly[GAMABuilder[T]].gamaOutputs add name -> p) andThen (outputs += p)
     }
 
-    lazy val gamaVariableOutputs = new {
-      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p.name, p)
-      def +=[T: GAMABuilder: InputOutputBuilder](name: String, p: Val[_]): T => T =
-        (implicitly[GAMABuilder[T]].gamaVariableOutputs add name -> p) andThen (outputs += p)
-    }
-
     lazy val gamaSeed = new {
       def :=[T: GAMABuilder](seed: Val[Int]): T => T = implicitly[GAMABuilder[T]].seed.set(Some(seed))
     }

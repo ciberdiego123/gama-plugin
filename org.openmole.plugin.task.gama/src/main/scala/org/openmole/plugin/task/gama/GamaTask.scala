@@ -24,7 +24,6 @@ object GamaTask {
   trait GAMABuilder[T] {
     def gamaInputs: Lens[T, Vector[(Val[_], String)]]
     def gamaOutputs: Lens[T, Vector[(String, Val[_])]]
-    def gamaVariableOutputs: Lens[T, Vector[(String, Val[_])]]
     def seed: Lens[T, Option[Val[Int]]]
   }
 
@@ -35,7 +34,6 @@ object GamaTask {
     override def gamaInputs = GamaTask.gamaInputs
     override def gamaOutputs = GamaTask.gamaOutputs
     override def seed = GamaTask.seed
-    override def gamaVariableOutputs = GamaTask.gamaVariableOutputs
   }
 
   def apply(
@@ -53,7 +51,6 @@ object GamaTask {
         maxStep = maxStep,
         gamaInputs = Vector.empty,
         gamaOutputs = Vector.empty,
-        gamaVariableOutputs = Vector.empty,
         seed = None,
         _config = InputOutputConfig(),
         external = External()
@@ -82,7 +79,6 @@ object GamaTask {
     maxStep: OptionalArgument[FromContext[Int]],
     gamaInputs: Vector[(Val[_], String)],
     gamaOutputs: Vector[(String, Val[_])],
-    gamaVariableOutputs: Vector[(String, Val[_])],
     seed: Option[Val[Int]],
     _config: InputOutputConfig,
     external: External
@@ -124,10 +120,9 @@ object GamaTask {
               )
           }
 
-          def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getOutput(n)) }
-          def gamaVOutputVariables = gamaVariableOutputs.map { case (n, p) => Variable.unsecure(p, experiment.getVariableOutput(n)) }
+          def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.evaluateExpression(n)) }
 
-          external.fetchOutputFiles(preparedContext, external.relativeResolver(workDir)) ++ gamaVOutputVariables ++ gamaOutputVariables
+          external.fetchOutputFiles(preparedContext, external.relativeResolver(workDir)) ++ gamaOutputVariables
         }
       }
 
