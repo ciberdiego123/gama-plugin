@@ -28,8 +28,8 @@ package gama {
   trait GamaPackage {
     lazy val gamaInputs = new {
       def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p, p.name)
-      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_], name: String): T => T = this.+=[T](p: FromContext[_], name) andThen (inputs += p)
-      def +=[T: GAMABuilder: InputOutputBuilder](p: FromContext[_], name: String): T => T = (implicitly[GAMABuilder[T]].gamaInputs add p -> name)
+      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_], name: String): T => T = (implicitly[GAMABuilder[T]].gamaInputs add (FromContext.prototype(p) -> name)) andThen (inputs += p)
+      def +=[T: GAMABuilder: InputOutputBuilder, U](v: U, name: String)(implicit toFromContext: ToFromContext[U, U]): T => T = implicitly[GAMABuilder[T]].gamaInputs add (toFromContext(v) -> name)
     }
 
     lazy val gamaOutputs = new {

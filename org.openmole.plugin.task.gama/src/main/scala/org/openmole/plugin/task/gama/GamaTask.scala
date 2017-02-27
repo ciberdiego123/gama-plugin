@@ -134,7 +134,9 @@ object GamaTask {
 
           def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.evaluateExpression(n)) }
 
-          external.fetchOutputFiles(preparedContext, external.relativeResolver(workDir)) ++ gamaOutputVariables
+          val resultContext = external.fetchOutputFiles(preparedContext, external.relativeResolver(workDir))
+          external.checkAndClean(this, resultContext, workDir)
+          resultContext ++ gamaOutputVariables
         }
       }
 
