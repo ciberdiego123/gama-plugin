@@ -22,7 +22,6 @@ object GamaBuild extends Build {
     resolvers += Resolver.sonatypeRepo("snapshots"),
     unmanagedBase := baseDirectory.value / "../bundles",
     organization := "org.openmole",
-    updateOptions := updateOptions.value.withCachedResolution(true),
     name := "openmole-gama"
   )
   val deleteTaskGama = taskKey[Unit]("delete task gama jar")
