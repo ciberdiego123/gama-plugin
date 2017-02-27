@@ -20,15 +20,17 @@ package org.openmole.plugin.task
 import org.openmole.core.workflow.builder._
 import org.openmole.core.workflow.dsl._
 import org.openmole.core.context._
-import org.openmole.plugin.task.gama.GamaTask.GAMABuilder
+import org.openmole.core.expansion._
+import org.openmole.plugin.task.gama.GamaTask._
 
 package gama {
+
 
   trait GamaPackage {
     lazy val gamaInputs = new {
       def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_]): T => T = this.+=[T](p, p.name)
-      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_], name: String): T => T =
-        (implicitly[GAMABuilder[T]].gamaInputs add p -> name) andThen (inputs += p)
+      def +=[T: GAMABuilder: InputOutputBuilder](p: Val[_], name: String): T => T = this.+=(p: FromContext[_], name) andThen (inputs += p)
+      def +=[T: GAMABuilder: InputOutputBuilder](p: FromContext[_], name: String): T => T = (implicitly[GAMABuilder[T]].gamaInputs add p -> name)
     }
 
     lazy val gamaOutputs = new {

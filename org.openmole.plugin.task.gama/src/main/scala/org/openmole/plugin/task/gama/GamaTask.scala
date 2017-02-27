@@ -22,7 +22,7 @@ import scala.util.Try
 object GamaTask {
 
   trait GAMABuilder[T] {
-    def gamaInputs: Lens[T, Vector[(Val[_], String)]]
+    def gamaInputs: Lens[T, Vector[(FromContext[_], String)]]
     def gamaOutputs: Lens[T, Vector[(String, Val[_])]]
     def seed: Lens[T, Option[Val[Int]]]
   }
@@ -85,7 +85,7 @@ object GamaTask {
     experimentName: FromContext[String],
     stopCondition: OptionalArgument[FromContext[String]],
     maxStep: OptionalArgument[FromContext[Int]],
-    gamaInputs: Vector[(Val[_], String)],
+    gamaInputs: Vector[(FromContext[_], String)],
     gamaOutputs: Vector[(String, Val[_])],
     seed: Option[Val[Int]],
     _config: InputOutputConfig,
@@ -117,7 +117,7 @@ object GamaTask {
       GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
         GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
-          for ((p, n) <- gamaInputs) experiment.setParameter(n, context(p))
+          for ((p, n) <- gamaInputs) experiment.setParameter(n, p.from(context))
           experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
 
           try experiment.play(
