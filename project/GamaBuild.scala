@@ -41,18 +41,6 @@ object GamaBuild extends Build {
       resolvers in OSGiConf += typeP2("GAMA update site" at "http://localhost:8080/"),
       //resolvers in OSGiConf += typeP2("GAMA update site" at "http://gama.unthinkingdepths.fr/"),
       libraryDependencies in OSGiConf += typeP2(OSGi.ECLIPSE_PLUGIN % "msi.gama.headless" % OSGi.ANY_VERSION withSources),
-      //libraryDependencies in OSGiConf += typeP2(OSGi.ECLIPSE_PLUGIN % "org.eclipse.ui" % OSGi.ANY_VERSION withSources),
-      libraryDependencies += "biz.aQute" % "bndlib" % "2.0.0.20130123-133441",
-      libraryDependencies ++= Seq(
-        "com.github.julien-truffaut"  %%  "monocle-core"    % "1.3.2",
-        "com.github.julien-truffaut"  %%  "monocle-generic" % "1.3.2",
-        "com.github.julien-truffaut"  %%  "monocle-macro"   % "1.3.2",
-        "com.github.julien-truffaut"  %%  "monocle-state"   % "1.3.2",
-        "com.github.julien-truffaut"  %%  "monocle-refined" % "1.3.2",
-        "com.github.julien-truffaut"  %%  "monocle-unsafe"  % "1.3.2",
-        "com.github.julien-truffaut"  %%  "monocle-law"     % "1.3.2" % "test"
-      ),
-      libraryDependencies +=  "com.google.code.findbugs" % "jsr305" % "2.0.3" % "test",
       libraryDependencies += "org.openmole" %% "org-openmole-core-dsl" % openmoleVersion % "provided",
       libraryDependencies += "org.openmole" %% "org-openmole-plugin-task-external" % openmoleVersion % "provided",
       artifactPath in (Compile, packageBin) ~= { defaultPath =>
