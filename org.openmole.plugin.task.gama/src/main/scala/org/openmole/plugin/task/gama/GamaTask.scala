@@ -131,8 +131,6 @@ object GamaTask {
 
           experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
 
-          val gamaValue = experiment.evaluateExpression("1 + 1")
-
           //FIXME workaround some wierd gama bug, otherwise output cannot be evaluated
           gamaOutputs.foreach {
             case (n, p) => experiment.evaluateExpression(n)
