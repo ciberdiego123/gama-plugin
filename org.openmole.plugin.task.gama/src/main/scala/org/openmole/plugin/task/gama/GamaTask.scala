@@ -12,10 +12,15 @@ import org.openmole.core.tools.io.Prettifier._
 import monocle.Lens
 import monocle.macros.Lenses
 import msi.gama.headless.openmole.MoleSimulationLoader
+import msi.gama.kernel.experiment.IParameter
+import msi.gama.util.{ GamaList, GamaListFactory }
+import msi.gama.util.matrix.GamaMatrix
+import msi.gaml.types.{ IType, Types }
 import org.openmole.core.expansion.FromContext
 import org.openmole.core.workflow.builder.{ InputOutputBuilder, InputOutputConfig }
 import org.openmole.core.workflow.validation.ValidateTask
 import org.openmole.tool.random._
+import org.openmole.tool.types._
 
 import scala.util.Try
 
@@ -117,7 +122,13 @@ object GamaTask {
       GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
         GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
-          for ((p, n) <- gamaInputs) experiment.setParameter(n, p.from(context))
+          val gamaParameters = model.getExperiment(experimentName.from(context)).getParameters
+
+          for ((p, n) <- gamaInputs) {
+            val parameter = gamaParameters.get(n)
+            experiment.setParameter(n, toGAMAObject(p.from(context), parameter, parameter.getType))
+          }
+
           experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
 
           try experiment.play(
@@ -132,7 +143,11 @@ object GamaTask {
               )
           }
 
-          def gamaOutputVariables = gamaOutputs.map { case (n, p) => Variable.unsecure(p, experiment.evaluateExpression(n)) }
+          def gamaOutputVariables = gamaOutputs.map {
+            case (n, p) =>
+              val gamaValue = experiment.evaluateExpression(n)
+              Variable.unsecure(p, fromGAMAObject(gamaValue, p.`type`.manifest.runtimeClass, p, n))
+          }
 
           val resultContext = external.fetchOutputFiles(preparedContext, external.relativeResolver(workDir))
           external.checkAndClean(this, resultContext, workDir)
@@ -148,6 +163,32 @@ object GamaTask {
           s"""Gama raised the exception:
               |""".stripMargin + t.stackStringWithMargin
         )
+    }
+  }
+
+  def toGAMAObject(v: Any, p: IParameter, t: IType[_]): Any = {
+    def error = new UserBadDataError(s"Parameter ${p.getName} cannot be set from an input of type ${v.getClass}")
+    t.id match {
+      case IType.LIST =>
+        v match {
+          case vs: Array[_] =>
+            GamaListFactory.createWithoutCasting(Types.NO_TYPE, vs.map(v => toGAMAObject(v, p, t.getContentType)): _*)
+          case _ => throw error
+        }
+      case _ => v
+    }
+  }
+
+  def fromGAMAObject(v: Any, m: Class[_], p: Val[_], exp: String): Any = {
+    import collection.JavaConverters._
+    v match {
+      case x: java.util.List[_] =>
+        val componentType = m.getComponentType
+        if (componentType == null) throw new UserBadDataError(s"Output variable $p cannot be set from gama value $v (expression $exp)")
+        val array = java.lang.reflect.Array.newInstance(componentType, x.size)
+        for ((xe, i) <- x.asScala.zipWithIndex) java.lang.reflect.Array.set(array, i, fromGAMAObject(xe, componentType, p, exp))
+        array
+      case x => x
     }
   }
 
