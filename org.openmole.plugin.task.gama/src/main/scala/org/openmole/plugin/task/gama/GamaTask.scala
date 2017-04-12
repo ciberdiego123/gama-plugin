@@ -157,17 +157,10 @@ object GamaTask {
                   ))
               }
 
-            val resultContext = external.
-              fetchOutputFiles(preparedContext, external.relativeResolver(
-                workDir
-              ))
-            external.
-              checkAndClean(
-                this,
-                resultContext, workDir
-              )
-            resultContext ++
-              gamaOutputVariables
+            val resultContext = external.fetchOutputFiles(this, preparedContext, external.relativeResolver(workDir), workDir)
+            external.cleanWorkDirectory(this, resultContext, workDir)
+
+            resultContext ++ gamaOutputVariables
           }
         }
 
