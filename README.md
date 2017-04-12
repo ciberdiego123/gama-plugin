@@ -37,7 +37,7 @@ You could clone the dev version here `git clone https://github.com/openmole/open
 
 Go to openmole folder using `cd openmole` command.
 
-You can list the different tag available for OpenMole using the `git tag` command. We need the `6.1` version, so we run `git checkout v6.1` into the root openmole folder. 
+You can list the different tag available for OpenMole using the `git tag` command. We use the latest dev version, so we run `git checkout dev` into the root openmole folder. 
 
 In order to compile OpenMole you need to run these commands into your terminal : 
 
@@ -53,7 +53,7 @@ sbt publish-local
 
 You can find OpenMole application in `bin/openmole/target/assemble/`
 
-Run `./openmole` in this folder to launch openmole. It should open in your internet browser
+Run `./openmole` in this folder to launch openmole. It should open in your internet browser, if you're not on a distant server. If this is the case, you need to indicate the port using `--port xxxx` option where `xxxx` is the port number, like `8181` for example.  
 
 __Optional commands :__ 
 
@@ -69,6 +69,7 @@ Test by typing `openmole` in terminal.
 
 Clone this repository using `git clone https://github.com/openmole/gama-plugin`
 
+Checkout the latest dev branch with `git checkout 7`
 
 You could now compile `gama-plugin` using these commands : 
 ```bash 
