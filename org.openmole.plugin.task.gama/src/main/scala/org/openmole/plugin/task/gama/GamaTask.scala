@@ -117,7 +117,7 @@ object GamaTask {
         GamaTask.preload
         import parameters._
         import executionContext._
-        
+
         val context = parameters.context + (External.PWD -> workDir.getAbsolutePath)
 
         val preparedContext = external.prepareInputFiles(context, external.relativeResolver(workDir))
