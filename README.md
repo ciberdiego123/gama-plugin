@@ -7,6 +7,16 @@
 
 # Ubuntu 
 
+## Install Git LFS
+
+OpenMOLE use git LFS in order to download large file during clonning process.
+
+```bash
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+sudo apt-get install git-lfs
+git lfs install
+```
+
 ## Install JDK 8
 
 package `openjdk-8-jdk` name may vary accroding to your linux distribution / version
@@ -31,7 +41,7 @@ sudo apt-get install sbt
 
 ## OpenMole
 
-Gama-plugin need some [OpenMole](http://openmole.org) packages to work. We use the latest release version 6.1
+Gama-plugin need some [OpenMole](http://openmole.org) packages to work. We use the latest release version dev
 
 You could clone the dev version here `git clone https://github.com/openmole/openmole.git`
 
