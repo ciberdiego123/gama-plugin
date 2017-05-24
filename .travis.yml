@@ -3,7 +3,7 @@ jdk:
   - oraclejdk8
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install npm nodejs-legacy
+  - sudo apt-get install npm nodejs
 script:
   - sh ./openmole.sh
   - sh ./gama.sh
