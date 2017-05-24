@@ -5,7 +5,7 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get install npm nodejs
 script:
-  - sh ./git-lfs
+  - sh ./git-lfs.sh
   - sh ./openmole.sh
   - sh ./gama.sh
 cache:
