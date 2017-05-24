@@ -1,0 +1,16 @@
+language: java
+jdk:
+  - oraclejdk8
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install npm nodejs-legacy
+script:
+  - sh ./openmole.sh
+  - sh ./gama.sh
+cache:
+  directories:
+  - "$HOME/.m2"
+  - "$HOME/.ivy2"
+branches:
+  only:
+    - 7-dev
