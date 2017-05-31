@@ -21,6 +21,8 @@ import org.openmole.core.workflow.builder._
 import org.openmole.core.workflow.validation._
 import org.openmole.tool.random._
 import org.openmole.tool.types._
+import org.openmole.core.fileservice.FileService
+import org.openmole.core.workspace.NewFile
 
 import scala.util.Try
 
@@ -97,7 +99,9 @@ object GamaTask {
     external: External
 ) extends Task with ValidateTask {
 
-  override def validate: Seq[Throwable] = {
+  override def validate = Validate { p =>
+    import p._
+
     val allInputs = External.PWD :: inputs.toList
     def stopError = if (!stopCondition.isDefined && !maxStep.isDefined) List(new UserBadDataError("At least one of the parameters stopCondition or maxStep should be defined")) else List.empty
 
@@ -105,7 +109,7 @@ object GamaTask {
       stopCondition.toList.flatMap(_.validate(allInputs)) ++
       maxStep.toList.flatMap(_.validate(allInputs)) ++
       stopError ++
-      External.validate(external, allInputs)
+      External.validate(external)(allInputs).apply
   }
 
   def config =
@@ -116,7 +120,7 @@ object GamaTask {
       try {
         GamaTask.preload
         import parameters._
-        import executionContext._
+        import parameters.newFile
 
         val context = parameters.context + (External.PWD -> workDir.getAbsolutePath)
 
@@ -158,8 +162,8 @@ object GamaTask {
                   ))
               }
 
-            val resultContext = external.fetchOutputFiles(this, preparedContext, external.relativeResolver(workDir), workDir)
-            external.cleanWorkDirectory(this, resultContext, workDir)
+            val resultContext = external.fetchOutputFiles(outputs, preparedContext, external.relativeResolver(workDir), workDir)
+            external.cleanWorkDirectory(outputs, resultContext, workDir)
 
             resultContext ++ gamaOutputVariables
           }
