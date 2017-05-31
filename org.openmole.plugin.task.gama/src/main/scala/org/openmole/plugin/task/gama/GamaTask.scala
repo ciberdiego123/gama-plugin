@@ -9,6 +9,11 @@ import org.openmole.core.tools.service._
 import org.openmole.core.exception._
 import org.openmole.plugin.task.external._
 import org.openmole.core.tools.io.Prettifier._
+import org.openmole.core.expansion.FromContext
+import org.openmole.core.workflow.builder.{ InputOutputBuilder, InputOutputConfig }
+import org.openmole.core.workflow.validation.ValidateTask
+import org.openmole.tool.random._
+import org.openmole.tool.types._
 import monocle.Lens
 import monocle.macros.Lenses
 import msi.gama.headless.openmole.MoleSimulationLoader
@@ -16,11 +21,6 @@ import msi.gama.kernel.experiment.IParameter
 import msi.gama.util.{ GamaList, GamaListFactory }
 import msi.gama.util.matrix.GamaMatrix
 import msi.gaml.types.{ IType, Types }
-import org.openmole.core.expansion.FromContext
-import org.openmole.core.workflow.builder.{ InputOutputBuilder, InputOutputConfig }
-import org.openmole.core.workflow.validation.ValidateTask
-import org.openmole.tool.random._
-import org.openmole.tool.types._
 
 import scala.util.Try
 
@@ -111,63 +111,69 @@ object GamaTask {
   def config =
     InputOutputConfig.inputs.modify(_ ++ seed)(_config)
 
-  override protected def process(ctx: Context, executionContext: TaskExecutionContext)(implicit rng: RandomProvider): Context = External.withWorkDir(executionContext) { workDir ⇒
-    try {
-      GamaTask.preload
+  override protected def process(executionContext: TaskExecutionContext) = FromContext { p ⇒
+    import p._
+    import executionContext._
 
-      val context = ctx + (External.PWD -> workDir.getAbsolutePath)
+    External.withWorkDir(executionContext) { workDir ⇒
+      try {
+        GamaTask.preload
 
-      val preparedContext = external.prepareInputFiles(context, external.relativeResolver(workDir))
+        val context = p.context + (External.PWD -> workDir.getAbsolutePath)
 
-      GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
-        GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
+        val preparedContext = external.prepareInputFiles(context, external.relativeResolver(workDir))
 
-          val gamaParameters = model.getExperiment(experimentName.from(context)).getParameters
+        GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
+          GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
-          for ((p, n) <- gamaInputs) {
-            val parameter = gamaParameters.get(n)
-            experiment.setParameter(n, toGAMAObject(p.from(context), parameter, parameter.getType))
-          }
+            val gamaParameters = model.getExperiment(experimentName.from(context)).getParameters
 
-          experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(rng().nextInt).toDouble)
+            for ((p, n) <- gamaInputs) {
+              val parameter = gamaParameters.get(n)
+              experiment.setParameter(n, toGAMAObject(p.from(context), parameter, parameter.getType))
+            }
 
-          //FIXME workaround some wierd gama bug, otherwise output cannot be evaluated
-          gamaOutputs.foreach {
-            case (n, p) => experiment.evaluateExpression(n)
-          }
+            experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(random().nextInt).toDouble)
 
-          try experiment.play(
-            stopCondition.map(_.from(context)).getOrElse(null),
-            maxStep.map(_.from(context)).getOrElse(-1)
-          )
-          catch {
-            case t: Throwable ⇒
-              throw new UserBadDataError(
-                s"""Gama raised an exception while running the simulation:
+            //FIXME workaround some wierd gama bug, otherwise output cannot be evaluated
+            gamaOutputs.foreach {
+              case (n, p) => experiment.evaluateExpression(n)
+            }
+
+            try experiment.play(
+              stopCondition.map(_.from(context)).getOrElse(null),
+              maxStep.map(_.from(context)).getOrElse(-1)
+            )
+            catch {
+              case t: Throwable ⇒
+                throw new UserBadDataError(
+                  s"""Gama raised an exception while running the simulation:
                     |""".stripMargin + t.stackStringWithMargin
-              )
-          }
+                )
+            }
 
-          def gamaOutputVariables = gamaOutputs.map {
-            case (n, p) =>
-              val gamaValue = experiment.evaluateExpression(n)
-              Variable.unsecure(p, fromGAMAObject(gamaValue, p.`type`.manifest.runtimeClass, p, n))
-          }
+            def gamaOutputVariables = gamaOutputs.map {
+              case (n, p) =>
+                val gamaValue = experiment.evaluateExpression(n)
+                Variable.unsecure(p, fromGAMAObject(gamaValue, p.`type`.manifest.runtimeClass, p, n))
+            }
 
-          val resultContext = external.fetchOutputFiles(preparedContext, external.relativeResolver(workDir))
-          external.checkAndClean(this, resultContext, workDir)
-          resultContext ++ gamaOutputVariables
+            val retContext: Context = external.fetchOutputFiles(this, preparedContext, external.relativeResolver(workDir), workDir)
+            external.cleanWorkDirectory(this, retContext, workDir)
+
+            retContext ++ gamaOutputVariables
+          }
         }
-      }
 
-    } catch {
-      case u: UserBadDataError => throw u
-      case t: Throwable ⇒
-        // Don't chain exceptions to avoid deserialisation issue
-        throw new UserBadDataError(
-          s"""Gama raised the exception:
+      } catch {
+        case u: UserBadDataError => throw u
+        case t: Throwable ⇒
+          // Don't chain exceptions to avoid deserialisation issue
+          throw new UserBadDataError(
+            s"""Gama raised the exception:
               |""".stripMargin + t.stackStringWithMargin
-        )
+          )
+      }
     }
   }
 
