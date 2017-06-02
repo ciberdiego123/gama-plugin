@@ -41,23 +41,26 @@ sudo apt-get install sbt
 
 ## OpenMole
 
-Gama-plugin need some [OpenMole](http://openmole.org) packages to work. We use the latest release version dev
+Gama-plugin need some [OpenMole](http://openmole.org) packages to work. We use the latest released version.
 
-You could clone the dev version here `git clone https://github.com/openmole/openmole.git`
+You could clone the released version here `git clone https://github.com/openmole/openmole.git`
 
 Go to openmole folder using `cd openmole` command.
 
-You can list the different tag available for OpenMole using the `git tag` command. We use the latest dev version, so we run `git checkout dev` into the root openmole folder. 
+You can list the different tag available for OpenMole using the `git tag` command. If you want to use the latest dev version, so could run `git checkout dev` into the root openmole folder. 
 
-In order to compile OpenMole you need to run these commands into your terminal : 
+In order to compile OpenMole (see [official documentation ](https://next.openmole.org/Documentation_Development_Compilation.html) here ) you need to run these commands into your terminal : 
 
 ```bash
+git submodule init
+git submodule update
+
 cd build-system
 sbt publish-local
 cd ../libraries
 sbt publish-local
 cd ../openmole
-sbt assemble
+sbt "project openmole" assemble
 sbt publish-local
 ```
 
@@ -79,7 +82,7 @@ Test by typing `openmole` in terminal.
 
 Clone this repository using `git clone https://github.com/openmole/gama-plugin`
 
-Checkout the latest dev branch with `git checkout 7`
+Checkout the branch which correspond to openmole version you use : `git checkout master` for latest OpenMOLE release or some dev branch if you are crazy (see branches available with `git branch`)
 
 You could now compile `gama-plugin` using these commands : 
 ```bash 
@@ -127,7 +130,7 @@ cd gama
 /.build.sh
 ```
 
-If you have correct credentials (into `~/.m2/settings.xml`), you can also modify the file `/msi.gama.p2updatesite/pom.xml` to deploy the latest dev version to this p2 online repository `sftp://gama.unthinkingdepths.fr`
+If you're a dev and you have credentials (into `~/.m2/settings.xml`), you can also modify the file `/msi.gama.p2updatesite/pom.xml` to deploy the latest dev version to this p2 online repository `sftp://gama.unthinkingdepths.fr`
 
 Replace this two existing lines by :
 
