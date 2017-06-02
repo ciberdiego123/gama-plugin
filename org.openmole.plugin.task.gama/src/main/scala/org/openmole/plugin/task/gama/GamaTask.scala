@@ -138,29 +138,28 @@ object GamaTask {
 
             experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(random().nextInt).toDouble)
 
-            try experiment.play(
-              stopCondition.map(_.from(context)).getOrElse(null),
-              maxStep.map(_.from(context)).getOrElse(-1)
-            )
-            catch {
-              case t: Throwable ⇒
-                throw new UserBadDataError(
-                  """Gama raised an exception while running the simulation:
-                      |""".stripMargin + t.
-                    stackStringWithMargin
-                )
+            //FIXME workaround some wierd gama bug, otherwise output cannot be evaluated
+            gamaOutputs.foreach {
+              case (n, p) => experiment.evaluateExpression(n)
             }
 
-            def gamaOutputVariables =
-              gamaOutputs.map {
-                case (n, p) =>
-                  val gamaValue =
-                    experiment.evaluateExpression(n)
-                  Variable.unsecure(p, fromGAMAObject(
+          try experiment.play(
+            stopCondition.map(_.from(context)).getOrElse(null),
+            maxStep.map(_.from(context)).getOrElse(-1)
+          )
+          catch {
+            case t: Throwable ⇒
+              throw new UserBadDataError(
+                s"""Gama raised an exception while running the simulation:
+                    |""".stripMargin + t.stackStringWithMargin
+              )
+          }
 
-                    gamaValue, p.`type`.manifest.runtimeClass, p, n
-                  ))
-              }
+          def gamaOutputVariables = gamaOutputs.map {
+            case (n, p) =>
+              val gamaValue = experiment.evaluateExpression(n)
+              Variable.unsecure(p, fromGAMAObject(gamaValue, p.`type`.manifest.runtimeClass, p, n))
+          }
 
             val resultContext = external.fetchOutputFiles(outputs, preparedContext, external.relativeResolver(workDir), workDir)
             external.cleanWorkDirectory(outputs, resultContext, workDir)
@@ -169,16 +168,14 @@ object GamaTask {
           }
         }
 
-      } catch {
-        case u: UserBadDataError =>
-          throw u
-        case t: Throwable ⇒
-          // Don't chain exceptions to avoid deserialisation issue
-          throw new UserBadDataError(
-            s"""Gama raised the exception:
-                |""".stripMargin + t.stackStringWithMargin
-          )
-      }
+    } catch {
+      case u: UserBadDataError => throw u
+      case t: Throwable ⇒
+        // Don't chain exceptions to avoid deserialisation issue
+        throw new UserBadDataError(
+          s"""Gama raised the exception:
+              |""".stripMargin + t.stackStringWithMargin
+        )
     }
   }
 
