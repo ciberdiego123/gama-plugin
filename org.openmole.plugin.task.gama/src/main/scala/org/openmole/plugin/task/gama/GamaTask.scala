@@ -116,11 +116,12 @@ object GamaTask {
     InputOutputConfig.inputs.modify(_ ++ seed)(_config)
 
   override protected def process(executionContext: TaskExecutionContext) = FromContext[Context] { parameters ⇒
+    import parameters._
+    import parameters.newFile
+    import executionContext._
     External.withWorkDir(executionContext) { workDir ⇒
       try {
         GamaTask.preload
-        import parameters._
-        import parameters.newFile
 
         val context = parameters.context + (External.PWD -> workDir.getAbsolutePath)
 
