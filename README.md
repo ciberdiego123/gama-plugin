@@ -3,6 +3,8 @@
 <img src="https://i.imgur.com/DW2erAV.png" alt="Drawing" width="200px"/>
 </center>
 
+[![Build Status](https://travis-ci.org/openmole/gama-plugin.svg?branch=master)](https://travis-ci.org/openmole/gama-plugin)
+
 # Installation of Gama Plugin from scratch
 
 # Ubuntu 
