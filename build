@@ -3,7 +3,7 @@
 (cd openmole && \
     (cd build-system && sbt publishLocal) && \
     (cd libraries && sbt publishLocal) && \
-    (cd openmole && sbt "project openmole" publishLocal))
+    (cd openmole && sbt publishLocal))
 
 sbt generateTask
 
