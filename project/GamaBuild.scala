@@ -11,7 +11,7 @@ object GamaBuild extends Build {
 
 //  resolvers in OSGiConf += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-  lazy val openmoleVersion = "7.0-SNAPSHOT"
+  lazy val openmoleVersion = "8.0-SNAPSHOT"
 
   val osgiSettings = Seq(
     OsgiKeys.importPackage := Seq("*"),
@@ -32,7 +32,7 @@ object GamaBuild extends Build {
       id = "openmole-gama",
       base = file("./org.openmole.plugin.task.gama/")) enablePlugins(SbtOsgi) settings(osgiSettings ++ DependencyManager ++ OSGiManagerWithDebug(): _*) settings(
       name := "task.gama",
-      scalaVersion := "2.11.11",
+      scalaVersion := "2.12.3",
       version := openmoleVersion,
       addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
       DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m => (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
