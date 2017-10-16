@@ -99,7 +99,9 @@ object GamaTask {
     external: External
 ) extends Task with ValidateTask {
 
-  override def validate = {
+  override def validate = Validate { p =>
+    import p._
+
     val allInputs = External.PWD :: inputs.toList
     def stopError = if (!stopCondition.isDefined && !maxStep.isDefined) List(new UserBadDataError("At least one of the parameters stopCondition or maxStep should be defined")) else List.empty
 
@@ -107,14 +109,13 @@ object GamaTask {
       stopCondition.toList.flatMap(_.validate(allInputs)) ++
       maxStep.toList.flatMap(_.validate(allInputs)) ++
       stopError ++
-      External.validate(external, allInputs)
+      External.validate(external)(allInputs).apply
   }
 
   def config =
     InputOutputConfig.inputs.modify(_ ++ seed)(_config)
 
   override protected def process(executionContext: TaskExecutionContext) = FromContext[Context] { parameters =>
-    import executionContext.fileService
 
     External.withWorkDir(executionContext) { workDir =>
       try {
@@ -166,8 +167,8 @@ object GamaTask {
                   ))
               }
 
-            val resultContext = external.fetchOutputFiles(this, preparedContext, external.relativeResolver(workDir), workDir)
-            external.cleanWorkDirectory(this, resultContext, workDir)
+            val resultContext = external.fetchOutputFiles(outputs, preparedContext, external.relativeResolver(workDir), workDir)
+            external.cleanWorkDirectory(outputs, resultContext, workDir)
 
             resultContext ++ gamaOutputVariables
           }
