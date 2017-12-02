@@ -5,6 +5,24 @@
 
 [![Build Status](https://travis-ci.org/openmole/gama-plugin.svg?branch=master)](https://travis-ci.org/openmole/gama-plugin)
 
+# Installation of prebuild Gama plugins
+
+## Download the set of Gama plugin for you OpenMOLE version
+
+Version 7: https://jenkins.iscpif.fr/job/gama-plugin-7dev/lastSuccessfulBuild/artifact/bundles.tgz
+Version 8: https://jenkins.iscpif.fr/job/gama-plugin-8dev/lastSuccessfulBuild/artifact/bundles.tgz
+
+## Start OpenMole with Gama-plugin
+
+You could list all OpenMole option typing `openmole -h` command in your terminal.
+
+Into `gama-plugin/` root folder, run OpenMole with plugin `-p` (load all the jars from plugin): 
+
+`openmole -p ./bundles/`
+
+Alternatively you can also upload them in the plugin pannel of the OpenMOLE interface.
+
+
 # Installation of Gama Plugin from scratch
 
 # Ubuntu 
