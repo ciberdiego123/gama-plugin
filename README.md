@@ -10,6 +10,7 @@
 ## Download the set of Gama plugin for you OpenMOLE version
 
 Version 7: https://jenkins.iscpif.fr/job/gama-plugin-7dev/lastSuccessfulBuild/artifact/bundles.tgz
+
 Version 8: https://jenkins.iscpif.fr/job/gama-plugin-8dev/lastSuccessfulBuild/artifact/bundles.tgz
 
 ## Start OpenMole with Gama-plugin
