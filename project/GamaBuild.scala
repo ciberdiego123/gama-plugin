@@ -16,7 +16,7 @@ object GamaBuild extends Build {
   val osgiSettings = Seq(
     OsgiKeys.importPackage := Seq("*"),
     OsgiKeys.privatePackage := Seq("!scala.*"),
-    OsgiKeys.requireCapability := """osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.7))""",
+    OsgiKeys.requireCapability := """osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))""",
     OsgiKeys.exportPackage := Seq("org.openmole.plugin.task.gama.*"),
     OsgiKeys.bundleActivator := Some("org.openmole.plugin.task.gama.Activator"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
