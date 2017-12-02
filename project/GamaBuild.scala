@@ -32,7 +32,7 @@ object GamaBuild extends Build {
       id = "openmole-gama",
       base = file("./org.openmole.plugin.task.gama/")) enablePlugins(SbtOsgi) settings(osgiSettings ++ DependencyManager ++ OSGiManagerWithDebug(): _*) settings(
       name := "task.gama",
-      scalaVersion := "2.12.3",
+      scalaVersion := "2.12.4",
       version := openmoleVersion,
       addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
       DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m => (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
