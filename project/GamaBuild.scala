@@ -20,7 +20,7 @@ object GamaBuild extends Build {
     OsgiKeys.exportPackage := Seq("org.openmole.plugin.task.gama.*"),
     OsgiKeys.bundleActivator := Some("org.openmole.plugin.task.gama.Activator"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    unmanagedBase := baseDirectory / "target/bundles-build",
+    unmanagedBase := baseDirectory.value / "target/bundles-build",
     organization := "org.openmole",
     name := "openmole-gama"
   )
