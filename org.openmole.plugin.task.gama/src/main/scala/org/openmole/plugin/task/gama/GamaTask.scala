@@ -11,20 +11,26 @@ import org.openmole.plugin.task.external._
 import org.openmole.core.tools.io.Prettifier._
 import monocle.Lens
 import monocle.macros.Lenses
+import msi.gama.headless.core.{ GamaHeadlessException, HeadlessSimulationLoader }
 import msi.gama.headless.openmole.MoleSimulationLoader
 import msi.gama.kernel.experiment.IParameter
+import msi.gama.kernel.model.IModel
+import msi.gama.precompiler.GamlProperties
 import msi.gama.util.{ GamaList, GamaListFactory }
 import msi.gama.util.matrix.GamaMatrix
+import msi.gaml.compilation.GamlCompilationError
 import msi.gaml.types.{ IType, Types }
 import org.openmole.core.expansion._
 import org.openmole.core.workflow.builder._
 import org.openmole.core.workflow.validation._
 import org.openmole.tool.random._
 import org.openmole.tool.types._
-
 import org.openmole.core.fileservice.FileService
+import org.openmole.core.pluginmanager._
+import org.openmole.core.serializer.plugin.Plugins
 import org.openmole.core.workspace.NewFile
 
+import collection.JavaConverters._
 import scala.util.Try
 
 object GamaTask {
@@ -57,6 +63,8 @@ object GamaTask {
         case Some(ws) => gaml.getPath
       }
 
+    println(extensionPlugins(workspace, gaml))
+
     val gamaTask =
       new GamaTask(
         gamlName,
@@ -67,6 +75,7 @@ object GamaTask {
         gamaOutputs = Vector.empty,
         seed = None,
         _config = InputOutputConfig(),
+        plugins = extensionPlugins(workspace, gaml),
         external = External()
       )
 
@@ -76,14 +85,47 @@ object GamaTask {
     }
   }
 
-  lazy val preload = {
-    MoleSimulationLoader.loadGAMA()
-  }
-
   private def withDisposable[T, D <: { def dispose() }](d: => D)(f: D => T): T = {
     val disposable = d
     try f(disposable)
     finally Try(disposable.dispose())
+  }
+
+  def errorString(compileError: Seq[GamlCompilationError], extensions: Seq[String]) = {
+    val allBundles = PluginManager.bundles
+    def bundleForExtension(name: String) = allBundles.find(_.getSymbolicName == name)
+    val missingExtensions = extensions.filter(ext => !bundleForExtension(ext).isDefined)
+    s"""Missing extensions:
+    |${missingExtensions.map(e => s"  $e").mkString("\n")}
+    |Gaml compilation errors:
+    |${compileError.map(e => s"  $e").mkString("\n")}""".stripMargin
+  }
+
+  def extensionPlugins(workspace: Option[File], model: File) = {
+    val modelFile =
+      workspace match {
+        case None => model
+        case Some(w) => w / model.getPath
+      }
+
+    val properties = new GamlProperties()
+    val errors = new java.util.LinkedList[GamlCompilationError]()
+
+    try GamaTask.withDisposable(MoleSimulationLoader.loadModel(modelFile, errors, properties)) { model => }
+    catch {
+      case e: GamaHeadlessException =>
+        throw new UserBadDataError(e, errorString(errors.asScala, Option(properties.get(GamlProperties.PLUGINS)).map(_.asScala.toSeq).getOrElse(Seq.empty)))
+    }
+
+    println(properties.get(GamlProperties.PLUGINS).asScala.mkString(", "))
+
+    val allBundles = PluginManager.bundles
+    val bundles = properties.get(GamlProperties.PLUGINS).asScala.map {
+      plugin =>
+        allBundles.find(_.getSymbolicName == plugin).getOrElse(throw new UserBadDataError(s"Missing plugin for extensions $plugin"))
+    }
+
+    bundles.flatMap(PluginManager.allPluginDependencies).map(_.file).toSeq
   }
 
 }
@@ -97,8 +139,9 @@ object GamaTask {
     gamaOutputs: Vector[(String, Val[_])],
     seed: Option[Val[Int]],
     _config: InputOutputConfig,
+    plugins: Seq[File],
     external: External
-) extends Task with ValidateTask {
+) extends Task with ValidateTask with Plugins {
 
   override def validate = Validate { p =>
     import p._
@@ -116,12 +159,20 @@ object GamaTask {
   def config =
     InputOutputConfig.inputs.modify(_ ++ seed)(_config)
 
+  def compile(model: File) = {
+    val properties = new GamlProperties()
+    val errors = new java.util.LinkedList[GamlCompilationError]()
+    try MoleSimulationLoader.loadModel(model, errors, properties)
+    catch {
+      case e: GamaHeadlessException =>
+        throw new UserBadDataError(e, GamaTask.errorString(errors.asScala, Option(properties.get(GamlProperties.PLUGINS)).map(_.asScala.toSeq).getOrElse(Seq.empty)))
+    }
+  }
+
   override protected def process(executionContext: TaskExecutionContext) = FromContext[Context] { parameters =>
 
     External.withWorkDir(executionContext) { workDir =>
       try {
-        GamaTask.preload
-
         import parameters._
         import parameters.newFile
 
@@ -129,7 +180,7 @@ object GamaTask {
 
         val preparedContext = external.prepareInputFiles(context, external.relativeResolver(workDir))
 
-        GamaTask.withDisposable(MoleSimulationLoader.loadModel(workDir / gaml)) { model =>
+        GamaTask.withDisposable(compile(workDir / gaml)) { model =>
           GamaTask.withDisposable(MoleSimulationLoader.newExperiment(model)) { experiment =>
 
             val gamaParameters = model.getExperiment(experimentName.from(context)).getParameters

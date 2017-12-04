@@ -20,11 +20,12 @@ object GamaBuild extends Build {
     OsgiKeys.exportPackage := Seq("org.openmole.plugin.task.gama.*"),
     OsgiKeys.bundleActivator := Some("org.openmole.plugin.task.gama.Activator"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    unmanagedBase := baseDirectory.value / "../bundles",
+    unmanagedBase := target.value / "bundles-build",
     organization := "org.openmole",
     name := "openmole-gama"
   )
   val deleteTaskGama = taskKey[Unit]("delete task gama jar")
+  val copyBundleTask = taskKey[Unit]("copy bunder directroy")
   val deleteTaskOsgi = taskKey[Unit]("delete tasg osgi jar")
   val generateTask = taskKey[Unit]("compile all gama bundle")
 
@@ -36,7 +37,7 @@ object GamaBuild extends Build {
       version := openmoleVersion,
       addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
       DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m => (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
-      DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "../bundles"),
+      DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "bundles-build"),
       resolvers in OSGiConf += typeP2("Eclipse Mars p2 update site" at "http://download.eclipse.org/releases/mars/"),
       //resolvers in OSGiConf += typeP2("GAMA update site" at "http://localhost:8080/"),
       //resolvers in OSGiConf += typeP2("GAMA update site" at "http://gama.unthinkingdepths.fr/"),
@@ -49,13 +50,19 @@ object GamaBuild extends Build {
         cleanFiles ++= (((baseDirectory.value / "../bundles" ) * "*.jar") get),
         onLoad in Global  :=  {
         ((s: State) => { "osgiResolveRemote" :: s }) compose (onLoad in Global).value },
-      deleteTaskGama := delete(((baseDirectory.value / "../bundles" ) * "task-gama*") get),
+      deleteTaskGama := delete(((target.value / "bundles-build" ) * "task-gama*") get),
       deleteTaskOsgi := delete(((baseDirectory.value / "../bundles" ) * "org.eclipse.osgi*") get),
+      copyBundleTask := {
+        delete(Seq(baseDirectory.value / "../bundles"))
+        (baseDirectory.value / "../bundles").mkdirs
+        copyDirectory(target.value / "bundles-build", baseDirectory.value / "../bundles")
+      },
         generateTask in Compile :=  Def.sequential(
           deleteTaskGama,
           dependencyTaskFetch,
           compile in Compile,
           OsgiKeys.bundle,
+          copyBundleTask,
           deleteTaskOsgi
         ).value
 
