@@ -7,7 +7,7 @@ services:
     ports:
       - "2222:22"
     volumes:
-      - ./data/repo:/repo/
+      - ./data/repo:/var/www/gama_updates/
   http:
     image: httpd
     ports:

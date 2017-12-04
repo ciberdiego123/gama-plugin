@@ -21,6 +21,7 @@ import org.openmole.core.workflow.builder._
 import org.openmole.core.workflow.validation._
 import org.openmole.tool.random._
 import org.openmole.tool.types._
+
 import org.openmole.core.fileservice.FileService
 import org.openmole.core.workspace.NewFile
 
@@ -135,7 +136,12 @@ object GamaTask {
 
             for ((p, n) <- gamaInputs) {
               val parameter = gamaParameters.get(n)
-              experiment.setParameter(n, toGAMAObject(p.from(context), parameter, parameter.getType))
+              if (parameter == null) throw new UserBadDataError(s"Parameter $n not found in experiment ${experimentName.from(context)}")
+              val value = p.from(context)
+              try experiment.setParameter(n, toGAMAObject(value, parameter, parameter.getType))
+              catch {
+                case t: Throwable => throw new InternalError(s"Error while setting experiment parameter $n with value $value", t)
+              }
             }
 
             experiment.setup(experimentName.from(context), seed.map(context(_)).getOrElse(random().nextInt).toDouble)
@@ -178,7 +184,12 @@ object GamaTask {
         case u: UserBadDataError => throw u
         case t: Throwable =>
           // Don't chain exceptions to avoid deserialisation issue
-          throw new UserBadDataError("""Gama raised the exception:""".stripMargin + t.stackStringWithMargin)
+          throw new UserBadDataError(
+            "Gama raised an exception:\n" +
+              t.stackStringWithMargin + "\n" +
+              s"""The content of the working directory was ($workDir)
+              |${directoryContentInformation(workDir)}""".stripMargin
+          )
       }
     }
   }
