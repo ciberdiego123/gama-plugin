@@ -20,7 +20,7 @@ object GamaBuild extends Build {
     OsgiKeys.exportPackage := Seq("org.openmole.plugin.task.gama.*"),
     OsgiKeys.bundleActivator := Some("org.openmole.plugin.task.gama.Activator"),
     resolvers += Resolver.sonatypeRepo("snapshots"),
-    unmanagedBase := target.value / "bundles-build",
+    unmanagedBase := baseDirectory / "target/bundles-build",
     organization := "org.openmole",
     name := "openmole-gama"
   )
@@ -50,12 +50,12 @@ object GamaBuild extends Build {
         cleanFiles ++= (((baseDirectory.value / "../bundles" ) * "*.jar") get),
         onLoad in Global  :=  {
         ((s: State) => { "osgiResolveRemote" :: s }) compose (onLoad in Global).value },
-      deleteTaskGama := delete(((target.value / "bundles-build" ) * "task-gama*") get),
+      deleteTaskGama := delete(((baseDirectory.value / "target/bundles-build" ) * "task-gama*") get),
       deleteTaskOsgi := delete(((baseDirectory.value / "../bundles" ) * "org.eclipse.osgi*") get),
       copyBundleTask := {
         delete(Seq(baseDirectory.value / "../bundles"))
         (baseDirectory.value / "../bundles").mkdirs
-        copyDirectory(target.value / "bundles-build", baseDirectory.value / "../bundles")
+        copyDirectory(baseDirectory.value / "target/bundles-build", baseDirectory.value / "../bundles")
       },
         generateTask in Compile :=  Def.sequential(
           deleteTaskGama,
