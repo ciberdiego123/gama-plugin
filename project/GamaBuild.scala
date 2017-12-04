@@ -24,12 +24,13 @@ object GamaBuild extends Build {
     organization := "org.openmole",
     name := "openmole-gama"
   )
+
   val deleteTaskGama = taskKey[Unit]("delete task gama jar")
   val copyBundleTask = taskKey[Unit]("copy bunder directroy")
   val deleteTaskOsgi = taskKey[Unit]("delete tasg osgi jar")
   val generateTask = taskKey[Unit]("compile all gama bundle")
 
-    lazy val core = Project(
+  lazy val core = Project(
       id = "openmole-gama",
       base = file("./org.openmole.plugin.task.gama/")) enablePlugins(SbtOsgi) settings(osgiSettings ++ DependencyManager ++ OSGiManagerWithDebug(): _*) settings(
       name := "task.gama",
@@ -37,7 +38,7 @@ object GamaBuild extends Build {
       version := openmoleVersion,
       addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full),
       DMKey.dependencyFilter in DMConf := Some(sbt.DependencyFilter.fnToModuleFilter{m => (m.configurations == Some("osgi") && m.organization != "org.eclipse.osgi")}),
-      DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "bundles-build"),
+      DMKey.dependencyOutput in DMConf := Some(baseDirectory.value / "target/bundles-build"),
       resolvers in OSGiConf += typeP2("Eclipse Mars p2 update site" at "http://download.eclipse.org/releases/mars/"),
       //resolvers in OSGiConf += typeP2("GAMA update site" at "http://localhost:8080/"),
       //resolvers in OSGiConf += typeP2("GAMA update site" at "http://gama.unthinkingdepths.fr/"),
@@ -46,11 +47,12 @@ object GamaBuild extends Build {
       libraryDependencies += "org.openmole" %% "org-openmole-core-dsl" % openmoleVersion % "provided",
       libraryDependencies += "org.openmole" %% "org-openmole-plugin-task-external" % openmoleVersion % "provided",
       artifactPath in (Compile, packageBin) ~= { defaultPath =>
+        file("bundles").mkdirs
         file("bundles") / defaultPath.getName },
         cleanFiles ++= (((baseDirectory.value / "../bundles" ) * "*.jar") get),
         onLoad in Global  :=  {
         ((s: State) => { "osgiResolveRemote" :: s }) compose (onLoad in Global).value },
-      deleteTaskGama := delete(((baseDirectory.value / "target/bundles-build" ) * "task-gama*") get),
+      deleteTaskGama := delete(((baseDirectory.value / "../bundles" ) * "task-gama*") get),
       deleteTaskOsgi := delete(((baseDirectory.value / "../bundles" ) * "org.eclipse.osgi*") get),
       copyBundleTask := {
         delete(Seq(baseDirectory.value / "../bundles"))
