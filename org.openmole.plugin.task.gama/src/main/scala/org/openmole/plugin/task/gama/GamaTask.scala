@@ -55,7 +55,8 @@ object GamaTask {
     experimentName: FromContext[String],
     stopCondition: OptionalArgument[FromContext[String]] = None,
     maxStep: OptionalArgument[FromContext[Int]] = None,
-    workspace: OptionalArgument[File] = None
+    workspace: OptionalArgument[File] = None,
+    failOnError: Boolean = true
   )(implicit name: sourcecode.Name) = {
     val gamlName =
       workspace.option match {
@@ -63,8 +64,7 @@ object GamaTask {
         case Some(ws) => gaml.getPath
       }
 
-    println(extensionPlugins(workspace, gaml))
-
+    val plugins = extensionPlugins(workspace, gaml, failOnError)
     val gamaTask =
       new GamaTask(
         gamlName,
@@ -75,7 +75,8 @@ object GamaTask {
         gamaOutputs = Vector.empty,
         seed = None,
         _config = InputOutputConfig(),
-        plugins = extensionPlugins(workspace, gaml),
+        plugins = plugins,
+        failOnError = failOnError,
         external = External()
       )
 
@@ -91,17 +92,25 @@ object GamaTask {
     finally Try(disposable.dispose())
   }
 
-  def errorString(compileError: Seq[GamlCompilationError], extensions: Seq[String]) = {
-    val allBundles = PluginManager.bundles
-    def bundleForExtension(name: String) = allBundles.find(_.getSymbolicName == name)
-    val missingExtensions = extensions.filter(ext => !bundleForExtension(ext).isDefined)
-    s"""Missing extensions:
-    |${missingExtensions.map(e => s"  $e").mkString("\n")}
-    |Gaml compilation errors:
-    |${compileError.map(e => s"  $e").mkString("\n")}""".stripMargin
+  def errorString(compileErrors: Seq[GamlCompilationError]) = {
+    def level(error: GamlCompilationError) =
+      (error.isInfo, error.isWarning, error.isError) match {
+        case (true, _, _) => "INFO"
+        case (_, true, _) => "WARNING"
+        case (_, _, true) => "ERROR"
+        case _ => "UNKNOWN"
+      }
+
+    s"""Gaml compilation errors (some errors may be caused by OpenGL function calls, in this case either separate the graphical aspect in another gaml file or set failOnError = false on the GAMATask):
+    |${compileErrors.map(e => s"  ${level(e)}: $e").mkString("\n")}""".stripMargin
   }
 
-  def extensionPlugins(workspace: Option[File], model: File) = {
+  def checkErrors(failOnError: Boolean, compileErrors: Seq[GamlCompilationError]) = {
+    def containsError = compileErrors.exists(_.isError)
+    if (failOnError && containsError) throw new UserBadDataError(errorString(compileErrors))
+  }
+
+  def extensionPlugins(workspace: Option[File], model: File, failOnError: Boolean) = {
     val modelFile =
       workspace match {
         case None => model
@@ -113,11 +122,10 @@ object GamaTask {
 
     try GamaTask.withDisposable(MoleSimulationLoader.loadModel(modelFile, errors, properties)) { model => }
     catch {
-      case e: GamaHeadlessException =>
-        throw new UserBadDataError(e, errorString(errors.asScala, Option(properties.get(GamlProperties.PLUGINS)).map(_.asScala.toSeq).getOrElse(Seq.empty)))
+      case e: GamaHeadlessException => throw new UserBadDataError(e, errorString(errors.asScala))
     }
 
-    println(properties.get(GamlProperties.PLUGINS).asScala.mkString(", "))
+    checkErrors(failOnError, errors.asScala)
 
     val allBundles = PluginManager.bundles
     val bundles = properties.get(GamlProperties.PLUGINS).asScala.map {
@@ -140,6 +148,7 @@ object GamaTask {
     seed: Option[Val[Int]],
     _config: InputOutputConfig,
     plugins: Seq[File],
+    failOnError: Boolean,
     external: External
 ) extends Task with ValidateTask with Plugins {
 
@@ -162,11 +171,16 @@ object GamaTask {
   def compile(model: File) = {
     val properties = new GamlProperties()
     val errors = new java.util.LinkedList[GamlCompilationError]()
-    try MoleSimulationLoader.loadModel(model, errors, properties)
-    catch {
-      case e: GamaHeadlessException =>
-        throw new UserBadDataError(e, GamaTask.errorString(errors.asScala, Option(properties.get(GamlProperties.PLUGINS)).map(_.asScala.toSeq).getOrElse(Seq.empty)))
-    }
+    val compiled =
+      try MoleSimulationLoader.loadModel(model, errors, properties)
+      catch {
+        case e: GamaHeadlessException =>
+          throw new UserBadDataError(e, GamaTask.errorString(errors.asScala))
+      }
+
+    GamaTask.checkErrors(failOnError, errors.asScala)
+
+    compiled
   }
 
   override protected def process(executionContext: TaskExecutionContext) = FromContext[Context] { parameters =>

@@ -63,9 +63,9 @@ object GamaBuild extends Build {
           deleteTaskGama,
           dependencyTaskFetch,
           compile in Compile,
-          OsgiKeys.bundle,
           copyBundleTask,
-          deleteTaskOsgi
+          deleteTaskOsgi,
+          OsgiKeys.bundle
         ).value
 
 
