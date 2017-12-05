@@ -185,8 +185,8 @@ When you compile the gama-plugin, you need to see some log like that, which indi
 
 ```scala
 // Declare the variable
-val number_of_preys = Var[Int]
-val nb_preys_init = Var[Int]
+val number_of_preys = Val[Int]
+val nb_preys_init = Val[Int]
 
 // Gama task
 // The third argument of the GamaTask is the gama experiment name
