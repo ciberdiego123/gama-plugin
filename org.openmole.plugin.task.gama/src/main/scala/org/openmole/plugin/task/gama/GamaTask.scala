@@ -56,15 +56,14 @@ object GamaTask {
     stopCondition: OptionalArgument[FromContext[String]] = None,
     maxStep: OptionalArgument[FromContext[Int]] = None,
     workspace: OptionalArgument[File] = None,
-    failOnError: Boolean = true
-  )(implicit name: sourcecode.Name) = {
+    failOnGamlError: Boolean = true)(implicit name: sourcecode.Name) = {
     val gamlName =
       workspace.option match {
         case None => gaml.getName
         case Some(ws) => gaml.getPath
       }
 
-    val plugins = extensionPlugins(workspace, gaml, failOnError)
+    val plugins = extensionPlugins(workspace, gaml, failOnGamlError)
     val gamaTask =
       new GamaTask(
         gamlName,
@@ -76,7 +75,7 @@ object GamaTask {
         seed = None,
         _config = InputOutputConfig(),
         plugins = plugins,
-        failOnError = failOnError,
+        failOnError = failOnGamlError,
         external = External()
       )
 
@@ -101,7 +100,7 @@ object GamaTask {
         case _ => "UNKNOWN"
       }
 
-    s"""Gaml compilation errors (some errors may be caused by OpenGL function calls, in this case either separate the graphical aspect in another gaml file or set failOnError = false on the GAMATask):
+    s"""Gaml compilation errors (some errors may be caused by OpenGL function calls, in this case either separate the graphical aspect in another gaml file or set "failOnGamlError = false" on the GAMATask):
     |${compileErrors.map(e => s"  ${level(e)}: $e").mkString("\n")}""".stripMargin
   }
 
