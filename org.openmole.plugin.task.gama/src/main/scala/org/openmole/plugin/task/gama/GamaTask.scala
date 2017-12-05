@@ -56,7 +56,8 @@ object GamaTask {
     stopCondition: OptionalArgument[FromContext[String]] = None,
     maxStep: OptionalArgument[FromContext[Int]] = None,
     workspace: OptionalArgument[File] = None,
-    failOnGamlError: Boolean = true)(implicit name: sourcecode.Name) = {
+    failOnGamlError: Boolean = true
+  )(implicit name: sourcecode.Name) = {
     val gamlName =
       workspace.option match {
         case None => gaml.getName
@@ -75,7 +76,7 @@ object GamaTask {
         seed = None,
         _config = InputOutputConfig(),
         plugins = plugins,
-        failOnError = failOnGamlError,
+        failOnGamlError = failOnGamlError,
         external = External()
       )
 
@@ -138,18 +139,17 @@ object GamaTask {
 }
 
 @Lenses case class GamaTask(
-    gaml: String,
-    experimentName: FromContext[String],
-    stopCondition: OptionalArgument[FromContext[String]],
-    maxStep: OptionalArgument[FromContext[Int]],
-    gamaInputs: Vector[(FromContext[_], String)],
-    gamaOutputs: Vector[(String, Val[_])],
-    seed: Option[Val[Int]],
-    _config: InputOutputConfig,
-    plugins: Seq[File],
-    failOnError: Boolean,
-    external: External
-) extends Task with ValidateTask with Plugins {
+  gaml: String,
+  experimentName: FromContext[String],
+  stopCondition: OptionalArgument[FromContext[String]],
+  maxStep: OptionalArgument[FromContext[Int]],
+  gamaInputs: Vector[(FromContext[_], String)],
+  gamaOutputs: Vector[(String, Val[_])],
+  seed: Option[Val[Int]],
+  _config: InputOutputConfig,
+  plugins: Seq[File],
+  failOnGamlError: Boolean,
+  external: External) extends Task with ValidateTask with Plugins {
 
   override def validate = Validate { p =>
     import p._
@@ -177,7 +177,7 @@ object GamaTask {
           throw new UserBadDataError(e, GamaTask.errorString(errors.asScala))
       }
 
-    GamaTask.checkErrors(failOnError, errors.asScala)
+    GamaTask.checkErrors(failOnGamlError, errors.asScala)
 
     compiled
   }
